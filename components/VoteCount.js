@@ -15,8 +15,8 @@ export default class VoteCount extends React.Component {
   }
 
   displayVoteCount() {
-    const { annotation } = this.props;
-    const voteCount = annotation.upvotes.length - annotation.downvotes.length;
+    const { tweet } = this.props;
+    const voteCount = tweet.upvotes.length - tweet.downvotes.length;
     let voteText;
     if (voteCount > 0) {
       voteText = `+${voteCount}`;
@@ -46,12 +46,12 @@ VoteContainer.propTypes = {
 };
 
 VoteCount.propTypes = {
-  annotation: PropTypes.shape({
+  tweet: PropTypes.shape({
     upvotes: PropTypes.array,
     downvotes: PropTypes.array,
   }),
 };
 
 VoteCount.defaultProps = {
-  annotation: {},
+  tweet: {},
 };

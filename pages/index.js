@@ -6,6 +6,7 @@ import {
   Card,
   Col,
   Input,
+  Icon,
   Progress,
   Row,
 } from 'antd';
@@ -335,25 +336,55 @@ class Index extends Component {
                               avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
                               description={`By ${tweet.creator}`}
                             />
-                            <VoteComponent
-                              token={token}
-                              upvoteType={renderIcon(tweet, user, true)}
-                              downvoteType={renderIcon(tweet, user, false)}
-                              onUpvote={evt => this.vote(evt, true, tweet)}
-                              onDownvote={evt => this.vote(evt, false, tweet)}
-                            >
-                              <VoteCount annotation={tweet} />
-                            </VoteComponent>
                             <span>
                               {
                                 tweet.progress !== 100 ? (
-                                  <Progress
-                                    percent={tweet.progress}
-                                    status="active"
-                                    showInfo={false}
-                                    style={{ padding: '10px' }}
-                                  />
-                                ) : <span>Voting Complete</span>
+                                  <div>
+                                    <Progress
+                                      percent={tweet.progress}
+                                      status="active"
+                                      showInfo={false}
+                                      style={{ padding: '10px' }}
+                                    />
+                                    <VoteComponent
+                                      token={token}
+                                      upvoteType={renderIcon(tweet, user, true)}
+                                      downvoteType={renderIcon(tweet, user, false)}
+                                      onUpvote={evt => this.vote(evt, true, tweet)}
+                                      onDownvote={evt => this.vote(evt, false, tweet)}
+                                    >
+                                      <VoteCount tweet={tweet} />
+                                    </VoteComponent>
+                                  </div>
+                                ) : (
+                                  <span>
+                                    {
+                                      (tweet.upvotes.length > tweet.downvotes.length)
+                                      && (
+                                        <span>
+                                          <Icon type="check" style={{ color: 'lightgreen', fontSize: '25px' }} />
+                                          {' Valid'}
+                                        </span>
+                                      )
+                                    }
+                                    {
+                                      (tweet.upvotes.length < tweet.downvotes.length) && (
+                                        <span>
+                                          <Icon type="close-circle" style={{ color: 'salmon', fontSize: '25px' }} />
+                                          {' Invalid'}
+                                        </span>
+                                      )
+                                    }
+                                    {
+                                      (tweet.upvotes.length === tweet.downvotes.length) && (
+                                        <span>
+                                          <Icon type="question-circle" style={{ color: 'grey', fontSize: '25px' }} />
+                                          {' Questionable'}
+                                        </span>
+                                      )
+                                    }
+                                  </span>
+                                )
                               }
                             </span>
                           </Card>
