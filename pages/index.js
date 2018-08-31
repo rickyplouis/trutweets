@@ -50,6 +50,17 @@ const assignProgress = (trutweets) => {
   });
 };
 
+const PostTweet = ({ handleTweet, currentTweet }) => (
+  <Row>
+    <Col span={2}>
+      <Avatar icon="user" style={{ background: 'darkblue' }} />
+    </Col>
+    <Col span={22}>
+      <TextArea rows={3} placeholder="What's on your mind?" onChange={handleTweet} value={currentTweet} />
+    </Col>
+  </Row>
+);
+
 class Index extends Component {
   constructor(props) {
     super(props);
@@ -166,14 +177,10 @@ class Index extends Component {
           decodedToken && user.length > 0
             ? (
               <Container activePath={['1']}>
-                <Row>
-                  <Col span={2}>
-                    <Avatar icon="user" style={{ background: 'darkblue' }} />
-                  </Col>
-                  <Col span={22}>
-                    <TextArea rows={3} placeholder="What's on your mind?" onChange={this.handleTweet} value={currentTweet} />
-                  </Col>
-                </Row>
+                <PostTweet
+                  currentTweet={currentTweet}
+                  handleTweet={this.handleTweet}
+                />
                 <span style={{ textAlign: '-webkit-right', display: '-webkit-box', paddingTop: '10px' }}>
                   {currentTweet.length > 280 && <span style={{ color: 'red' }}>TruTweets must be less than 280 chars </span>}
                   <Button
@@ -184,40 +191,41 @@ class Index extends Component {
                   </Button>
                 </span>
                 { token && trutweets.length > 0 ? (
-                      trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart)).map(tweet => (
-                        <Row style={{ paddingTop: '10px' }}>
-                          <Col span={24}>
-                            <Card
-                              style={{ width: '100%' }}
-                            >
-                              <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
-                                {tweet.text}
-                              </h3>
-                              <Meta
-                                style={{ paddingLeft: '10px' }}
-                                avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
-                                description={`By ${tweet.creator}`}
-                              />
-                              <span>
-                                {
-                                  tweet.progress !== 100 ? (
-                                    <Progress
-                                      percent={tweet.progress}
-                                      status="active"
-                                      showInfo={false}
-                                      style={{ padding: '10px' }}
-                                    />
-                                  ) : <span></span>
-                                }
-                              </span>
-                            </Card>
-                          </Col>
-                        </Row>
-                      ))
-                    ) : (
-                      <div>Loading Tweets</div>
-                    )
-                  }
+                  trutweets
+                    .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart)).map(tweet => (
+                      <Row style={{ paddingTop: '10px' }}>
+                        <Col span={24}>
+                          <Card
+                            style={{ width: '100%' }}
+                          >
+                            <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
+                              {tweet.text}
+                            </h3>
+                            <Meta
+                              style={{ paddingLeft: '10px' }}
+                              avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
+                              description={`By ${tweet.creator}`}
+                            />
+                            <span>
+                              {
+                                tweet.progress !== 100 ? (
+                                  <Progress
+                                    percent={tweet.progress}
+                                    status="active"
+                                    showInfo={false}
+                                    style={{ padding: '10px' }}
+                                  />
+                                ) : <span>Voting Complete</span>
+                              }
+                            </span>
+                          </Card>
+                        </Col>
+                      </Row>
+                    ))
+                ) : (
+                  <div>Loading Tweets</div>
+                )
+              }
               </Container>
             ) : (
               <Container activePath={['1']}>
