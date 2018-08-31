@@ -51,7 +51,7 @@ const getProgress = (tweet) => {
   return (timePassed / totalSeconds) * 100;
 };
 
-const assignProgress = (trutweets) => {
+const assignProgress = (trutweets = []) => {
   return trutweets.map((tweet) => {
     tweet.progress = getProgress(tweet)
     return tweet;
@@ -132,12 +132,14 @@ class Index extends Component {
     if (trutweets.length === 0) {
       getReq('/api/trutweets', token).then((tweets) => {
         console.log('getAll from mount');
-        tweets = assignProgress(tweets);
-        this.setState(prevState => ({
-          ...prevState,
-          trutweets: tweets,
-          timer,
-        }));
+        if (Array.isArray(tweets)) {
+          tweets = assignProgress(tweets);
+          this.setState(prevState => ({
+            ...prevState,
+            trutweets: tweets,
+            timer,
+          }));
+        }
       });
     } else {
       this.setState(prevState => ({
@@ -151,8 +153,8 @@ class Index extends Component {
   componentWillUnmount() {
     console.log('willunmount');
     const { timer, secondTimer } = this.state;
-    this.clearInterval(timer);
-    this.clearInterval(secondTimer);
+    clearInterval(timer);
+    clearInterval(secondTimer);
   }
 
   checkTweets() {
@@ -169,25 +171,27 @@ class Index extends Component {
 
   incrementTweets() {
     const { trutweets, token } = this.state;
-    const newTweets = trutweets.map((tweet) => {
-      let tweetCopy = Object.assign({}, tweet);
-      if (tweetCopy.progress !== 100) {
-        Fetch.getReq(`/api/trutweets?_id=${tweet._id}`, token).then((res) => {
-          if (tweetCopy.upvotes !== res.upvotes) {
-            tweetCopy = Object.assign(tweetCopy, { upvotes: res.upvotes });
-          }
-          if (tweetCopy.downvotes !== res.downvotes) {
-            tweetCopy = Object.assign(tweetCopy, { downvotes: res.downvotes });
-          }
-        });
-        tweetCopy.progress = getProgress(tweetCopy);
-      }
-      return tweetCopy;
-    });
-    this.setState(prevState => ({
-      ...prevState,
-      trutweets: newTweets,
-    }));
+    if (Array.isArray(trutweets)) {
+      const newTweets = trutweets.map((tweet) => {
+        let tweetCopy = Object.assign({}, tweet);
+        if (tweetCopy.progress !== 100) {
+          Fetch.getReq(`/api/trutweets?_id=${tweet._id}`, token).then((res) => {
+            if (tweetCopy.upvotes !== res.upvotes) {
+              tweetCopy = Object.assign(tweetCopy, { upvotes: res.upvotes });
+            }
+            if (tweetCopy.downvotes !== res.downvotes) {
+              tweetCopy = Object.assign(tweetCopy, { downvotes: res.downvotes });
+            }
+          });
+          tweetCopy.progress = getProgress(tweetCopy);
+        }
+        return tweetCopy;
+      });
+      this.setState(prevState => ({
+        ...prevState,
+        trutweets: newTweets,
+      }));
+    }
   }
 
   handleProp(val, name) {
@@ -351,7 +355,7 @@ class Index extends Component {
                     .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart))
                     .slice(0, 10)
                     .map(tweet => (
-                      <Row style={{ paddingTop: '10px' }}>
+                      <Row style={{ paddingTop: '10px' }} key={tweet._id}>
                         <Col span={24}>
                           <Card
                             style={{ width: '100%' }}
