@@ -5,12 +5,11 @@ import {
   Button,
   Card,
   Col,
-  Icon,
   Input,
   Progress,
   Row,
 } from 'antd';
-import { Container } from '../components/list';
+import { Container, VoteCount, VoteComponent } from '../components/list';
 
 const { Meta } = Card;
 const moment = require('moment');
@@ -28,6 +27,14 @@ const Fetch = require('../controllers/fetch');
 
 const { postReq, getReq } = Fetch;
 const { TextArea } = Input;
+
+const renderIcon = (selectedAnnotation = { upvotes: [], downvotes: [] }, currentUser = '', isLikeIcon) => {
+  const { upvotes, downvotes } = selectedAnnotation;
+  if (isLikeIcon) {
+    return upvotes.indexOf(currentUser) >= 0 ? 'like' : 'like-o';
+  }
+  return downvotes.indexOf(currentUser) >= 0 ? 'dislike' : 'dislike-o';
+};
 
 const getProgress = (tweet) => {
   let { timeStart, timeEnd } = tweet;
@@ -49,6 +56,29 @@ const assignProgress = (trutweets) => {
     return tweet;
   });
 };
+
+const handleRep = (_p_user, _p_target, token, action) => {
+  Fetch.getReq(`/api/users?_id=${_p_target}`, token).then((user) => {
+    const amount = repAction[action];
+
+    const repBody = {
+      _p_user,
+      _p_target,
+      action,
+      amount,
+    };
+
+    const userBody = {
+      reputation: (user.reputation + amount),
+    };
+
+    Promise.all([
+      Fetch.putReq(`/api/users?_id=${_p_target}`, userBody, token).then(res => console.log('put user rep', res)),
+      Fetch.postReq('/api/reputation', repBody, token).then(res => console.log('posted rep', res)),
+    ]);
+  });
+};
+
 
 const PostTweet = ({ handleTweet, currentTweet }) => (
   <Row>
@@ -137,6 +167,97 @@ class Index extends Component {
     this.handleProp(evt.target.value, 'currentTweet');
   }
 
+  handleVote(isUpvote, addingVote, index, selectedTweet) {
+    const voteType = isUpvote ? 'upvotes' : 'downvotes';
+    const { token, user } = this.state;
+    let body = {};
+    if (addingVote) {
+      // add up or downvote
+      selectedTweet[voteType].push(user);
+    } else {
+      // removing up or downvote
+      selectedTweet[voteType].splice(index, 1);
+    }
+    body = {
+      upvotes: selectedTweet.upvotes,
+      downvotes: selectedTweet.downvotes,
+    };
+    this.putVote(body, selectedTweet, token);
+  }
+
+  putVote(body, selectedAnnotation, token) {
+    this.handleProp(selectedAnnotation, 'selectedAnnotation');
+    Fetch.putReq(`/api/annotations?_id=${selectedAnnotation._id}`, body, token);
+  }
+
+
+  vote(evt, isUpvote, selectedTweet) {
+    evt.preventDefault();
+    const { user, token } = this.state;
+    const upvoteIndex = selectedTweet.upvotes.indexOf(user);
+    const downvoteIndex = selectedTweet.downvotes.indexOf(user);
+    let annotationBody = {};
+
+    const alreadyUpvoted = () => upvoteIndex >= 0;
+    const alreadyDownvoted = () => downvoteIndex >= 0;
+
+    const voteBody = {
+      user,
+      _p_annotation: selectedTweet._id,
+      upvote: isUpvote,
+      downvote: !isUpvote,
+      dateCreated: new Date(),
+    };
+
+    if (isUpvote) {
+      if (alreadyUpvoted()) {
+        // isupvote and user already upvoted
+        Fetch.postReq('/api/votes', voteBody, token);
+        this.handleVote(isUpvote, false, upvoteIndex, selectedTweet);
+        handleRep(user, selectedTweet.creator, token, 'REMOVE_UPVOTE');
+      } else if (alreadyDownvoted()) {
+        // isupvote and user already downvoted
+        // remove downvote and add upvote
+        selectedTweet.downvotes.splice(downvoteIndex, 1);
+        selectedTweet.upvotes.push(user);
+        annotationBody = {
+          downvotes: selectedTweet.downvotes,
+          upvotes: selectedTweet.upvotes,
+        };
+        Fetch.postReq('/api/votes', voteBody, token);
+        this.putVote(annotationBody, selectedTweet, token);
+        handleRep(user, selectedTweet.creator, token, 'UPVOTE');
+      } else {
+        // is upvote and user not yet voted
+        this.handleVote(isUpvote, true, upvoteIndex, selectedTweet);
+        Fetch.postReq('/api/votes', voteBody, token);
+        handleRep(user, selectedTweet.creator, token, 'UPVOTE');
+      }
+    } else if (alreadyDownvoted()) {
+      // is downvote and user alreadyDownvoted
+      Fetch.postReq('/api/votes', voteBody, token);
+      this.handleVote(isUpvote, false, downvoteIndex, selectedTweet);
+      handleRep(user, selectedTweet.creator, token, 'REMOVE_DOWNVOTE');
+    } else if (alreadyUpvoted()) {
+      // isupvote and user already downvoted
+      // remove upvote and add downvote
+      selectedTweet.upvotes.splice(upvoteIndex, 1);
+      selectedTweet.downvotes.push(user);
+      annotationBody = {
+        upvotes: selectedTweet.upvotes,
+        downvotes: selectedTweet.downvotes,
+      };
+      Fetch.postReq('/api/votes', voteBody, token);
+      this.putVote(annotationBody, selectedTweet, token);
+      handleRep(user, selectedTweet.creator, token, 'DOWNVOTE');
+    } else {
+      // is downvote and user note yet voted
+      this.handleVote(isUpvote, true, downvoteIndex, selectedTweet);
+      Fetch.postReq('/api/votes', voteBody, token);
+      handleRep(user, selectedTweet.creator, token, 'DOWNVOTE');
+    }
+  }
+
   postTweet() {
     const { currentTweet, user, token } = this.state;
     const now = new Date();
@@ -192,7 +313,9 @@ class Index extends Component {
                 </span>
                 { token && trutweets.length > 0 ? (
                   trutweets
-                    .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart)).map(tweet => (
+                    .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart))
+                    .slice(0, 10)
+                    .map(tweet => (
                       <Row style={{ paddingTop: '10px' }}>
                         <Col span={24}>
                           <Card
@@ -206,6 +329,15 @@ class Index extends Component {
                               avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
                               description={`By ${tweet.creator}`}
                             />
+                            <VoteComponent
+                              token={token}
+                              upvoteType={renderIcon(tweet, user, true)}
+                              downvoteType={renderIcon(tweet, user, false)}
+                              onUpvote={evt => this.vote(evt, true, tweet)}
+                              onDownvote={evt => this.vote(evt, false, tweet)}
+                            >
+                              <VoteCount annotation={tweet} />
+                            </VoteComponent>
                             <span>
                               {
                                 tweet.progress !== 100 ? (
