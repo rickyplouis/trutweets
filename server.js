@@ -13,6 +13,7 @@ const config = require('./config');
 
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
+const trutweetRoutes = require('./routes/trutweetRoutes');
 
 const { testDB } = config;
 
@@ -35,6 +36,7 @@ app.prepare()
 
     server.use('/api', [
       authRoutes,
+      trutweetRoutes,
       userRoutes,
     ]);
 
