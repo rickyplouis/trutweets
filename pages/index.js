@@ -5,7 +5,6 @@ import {
 
 import { Container } from '../components/list';
 
-
 class Index extends Component {
   constructor(props) {
     super(props);

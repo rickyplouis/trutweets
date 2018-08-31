@@ -21,6 +21,7 @@ const Styles = {
 
 const PaperController = require('../controllers/paperController');
 const Fetch = require('../controllers/fetch');
+const config = require('../config');
 
 const { sanitize } = PaperController;
 
@@ -76,9 +77,7 @@ class NormalLoginForm extends React.Component {
             // navigate to whitepapers
             localStorage.setItem('token', val.token);
             localStorage.setItem('_p_user', val.user);
-            Fetch.getReq('/secret', val.token).then((res) => {
-              localStorage.setItem('secret', res.secret);
-            });
+            localStorage.setItem('secret', config.secret);
             Router.push('/');
           } else {
             this.setState(prevState => ({
