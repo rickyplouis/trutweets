@@ -29,7 +29,6 @@ const Fetch = require('../controllers/fetch');
 const { postReq, getReq } = Fetch;
 const { TextArea } = Input;
 
-
 class Index extends Component {
   constructor(props) {
     super(props);
@@ -46,6 +45,7 @@ class Index extends Component {
       user,
       token,
       decodedToken,
+      trutweets: [],
       currentTweet: '',
     };
     this.handleTweet = this.handleTweet.bind(this);
@@ -55,8 +55,11 @@ class Index extends Component {
 
   componentDidMount() {
     const { token } = this.state;
-    getReq('/api/trutweets', token).then((res) => {
-      console.log('res', res);
+    getReq('/api/trutweets', token).then((trutweets) => {
+      this.setState(prevState => ({
+        ...prevState,
+        trutweets,
+      }));
     });
   }
 
@@ -84,11 +87,43 @@ class Index extends Component {
       downvotes: [],
       status: 'inProgress',
     };
-    postReq('/api/trutweets', truTweet, token).then(res => console.log('res', res));
-    this.setState(prevState => ({
-      ...prevState,
-      currentTweet: '',
-    }));
+    postReq('/api/trutweets', truTweet, token);
+    getReq('/api/trutweets', token).then((trutweets) => {
+      this.setState(prevState => ({
+        ...prevState,
+        currentTweet: '',
+        trutweets,
+      }));
+    });
+  }
+
+  renderFeed() {
+    const { trutweets, token } = this.state;
+    return token && trutweets.length > 0 ? (
+      trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart)).map(tweet => (
+        <Row style={{ paddingTop: '10px' }}>
+          <Col span={24}>
+            <Card
+              style={{ width: '100%' }}
+            >
+              <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
+                {tweet.text}
+              </h3>
+              <Meta
+                style={{ paddingLeft: '10px' }}
+                avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
+                description={`By ${tweet.creator}`}
+              />
+              <span>
+                <Progress percent={50} status="active" showInfo={false} style={{ padding: '10px' }} />
+              </span>
+            </Card>
+          </Col>
+        </Row>
+      ))
+    ) : (
+      <div>Loading Tweets</div>
+    );
   }
 
   render() {
@@ -120,26 +155,7 @@ class Index extends Component {
                     Submit
                   </Button>
                 </span>
-                <Row style={{ paddingTop: '10px' }}>
-                  <Col span={24}>
-                    <Card
-                      style={{ width: '100%' }}
-                      actions={[<Icon type="setting" />, <Icon type="edit" />, <Icon type="ellipsis" />]}
-                    >
-                      <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
-                        Insert some provocative tweet here that the user can vote up or down
-                      </h3>
-                      <Meta
-                        style={{ paddingLeft: '10px' }}
-                        avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
-                        description="By some user"
-                      />
-                      <span>
-                        <Progress percent={50} status="active" showInfo={false} style={{ padding: '10px' }} />
-                      </span>
-                    </Card>
-                  </Col>
-                </Row>
+                {this.renderFeed()}
               </Container>
             ) : (
               <Container activePath={['1']}>
