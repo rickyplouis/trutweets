@@ -1,0 +1,24 @@
+{
+  "name": "trutweets",
+  "version": "1.0.0",
+  "description": "Like twitter, but not really",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rickyplouis/trutweets.git"
+  },
+  "keywords": [
+    "twitter",
+    "social",
+    "network"
+  ],
+  "author": "Ricardo Pierre-Louis",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rickyplouis/trutweets/issues"
+  },
+  "homepage": "https://github.com/rickyplouis/trutweets#readme"
+}
