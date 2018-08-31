@@ -8,8 +8,7 @@ import {
   Button,
 } from 'antd';
 import Router from 'next/router';
-
-import Meta from '../components/Meta';
+import { Container } from '../components/list';
 
 const Styles = {
   signupForm: {
@@ -25,13 +24,11 @@ const Fetch = require('../controllers/fetch');
 
 const { sanitize } = PaperController;
 
-
 const FormItem = Form.Item;
 
 function hasErrors(fieldsError) {
   return Object.keys(fieldsError).some(field => fieldsError[field]);
 }
-
 
 class NormalLoginForm extends React.Component {
   constructor(props) {
@@ -82,7 +79,7 @@ class NormalLoginForm extends React.Component {
             Fetch.getReq('/secret', val.token).then((res) => {
               localStorage.setItem('secret', res.secret);
             });
-            Router.push('/onboard');
+            Router.push('/');
           } else {
             this.setState(prevState => ({
               ...prevState,
@@ -108,8 +105,7 @@ class NormalLoginForm extends React.Component {
     } = form;
 
     return (
-      <div>
-        <Meta />
+      <Container activePath={['2']}>
         <div style={Styles.signupForm}>
           <div>
             Signup Form
@@ -168,7 +164,7 @@ class NormalLoginForm extends React.Component {
             </FormItem>
           </Form>
         </div>
-      </div>
+      </Container>
     );
   }
 }
