@@ -6,6 +6,18 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const mongoose = require('mongoose');
+const config = require('./config');
+
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+
+const { testDB } = config;
+
+mongoose.connect(testDB);
+
 app.prepare()
   .then(() => {
     const server = express();
@@ -17,6 +29,14 @@ app.prepare()
     server.get('/posts/:id', (req, res) => app.render(req, res, '/posts', { id: req.params.id }));
 
     server.get('*', (req, res) => handle(req, res));
+    server.use(bodyParser.urlencoded({ extended: false }));
+    server.use(bodyParser.json());
+    server.use(morgan('dev'));
+
+    server.use('/api', [
+      authRoutes,
+      userRoutes,
+    ]);
 
     server.listen(port, (err) => {
       if (err) throw err;
