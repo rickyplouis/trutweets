@@ -76,19 +76,27 @@ class Index extends Component {
   }
 
   componentDidMount() {
-    const { token } = this.state;
+    const { token, trutweets } = this.state;
     const timer = setInterval(this.incrementTweets, 1000);
-    getReq('/api/trutweets', token).then((trutweets) => {
-      trutweets = assignProgress(trutweets);
+    if (trutweets.length === 0) {
+      getReq('/api/trutweets', token).then((tweets) => {
+        tweets = assignProgress(tweets);
+        this.setState(prevState => ({
+          ...prevState,
+          trutweets: tweets,
+          timer,
+        }));
+      });
+    } else {
       this.setState(prevState => ({
         ...prevState,
-        trutweets,
-        timer
+        timer,
       }));
-    });
+    }
   }
 
   componentWillUnmount() {
+    console.log('willunmount');
     const { timer } = this.state;
     this.clearInterval(timer);
   }
@@ -143,43 +151,13 @@ class Index extends Component {
     })
   }
 
-  renderFeed() {
-    const { trutweets, token } = this.state;
-    return token && trutweets.length > 0 ? (
-      trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart)).map(tweet => (
-        <Row style={{ paddingTop: '10px' }}>
-          <Col span={24}>
-            <Card
-              style={{ width: '100%' }}
-            >
-              <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
-                {tweet.text}
-              </h3>
-              <Meta
-                style={{ paddingLeft: '10px' }}
-                avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
-                description={`By ${tweet.creator}`}
-              />
-              <span>
-                <Progress
-                  percent={tweet.progress}
-                  status="active"
-                  showInfo={false}
-                  style={{ padding: '10px' }} />
-              </span>
-            </Card>
-          </Col>
-        </Row>
-      ))
-    ) : (
-      <div>Loading Tweets</div>
-    );
-  }
-
   render() {
+    console.log('render');
     const {
       user,
       decodedToken,
+      token,
+      trutweets,
       currentTweet,
     } = this.state;
     return (
@@ -205,7 +183,41 @@ class Index extends Component {
                     Submit
                   </Button>
                 </span>
-                {this.renderFeed()}
+                { token && trutweets.length > 0 ? (
+                      trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart)).map(tweet => (
+                        <Row style={{ paddingTop: '10px' }}>
+                          <Col span={24}>
+                            <Card
+                              style={{ width: '100%' }}
+                            >
+                              <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
+                                {tweet.text}
+                              </h3>
+                              <Meta
+                                style={{ paddingLeft: '10px' }}
+                                avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
+                                description={`By ${tweet.creator}`}
+                              />
+                              <span>
+                                {
+                                  tweet.progress !== 100 ? (
+                                    <Progress
+                                      percent={tweet.progress}
+                                      status="active"
+                                      showInfo={false}
+                                      style={{ padding: '10px' }}
+                                    />
+                                  ) : <span></span>
+                                }
+                              </span>
+                            </Card>
+                          </Col>
+                        </Row>
+                      ))
+                    ) : (
+                      <div>Loading Tweets</div>
+                    )
+                  }
               </Container>
             ) : (
               <Container activePath={['1']}>
