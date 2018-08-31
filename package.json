@@ -4,7 +4,9 @@
   "description": "Like twitter, but not really",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,12 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/rickyplouis/trutweets/issues"
+  },
+  "dependencies": {
+    "express": "^4.14.0",
+    "next": "latest",
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0"
   },
   "homepage": "https://github.com/rickyplouis/trutweets#readme"
 }
