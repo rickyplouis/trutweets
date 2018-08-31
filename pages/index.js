@@ -121,13 +121,17 @@ class Index extends Component {
     this.handleProp = this.handleProp.bind(this);
     this.postTweet = this.postTweet.bind(this);
     this.incrementTweets = this.incrementTweets.bind(this);
+    this.checkTweets = this.checkTweets.bind(this);
   }
 
   componentDidMount() {
+    console.log('didmount');
     const { token, trutweets } = this.state;
     const timer = setInterval(this.incrementTweets, 1000);
+    const secondTimer = setInterval(this.checkTweets, 3000);
     if (trutweets.length === 0) {
       getReq('/api/trutweets', token).then((tweets) => {
+        console.log('getAll from mount');
         tweets = assignProgress(tweets);
         this.setState(prevState => ({
           ...prevState,
@@ -138,6 +142,7 @@ class Index extends Component {
     } else {
       this.setState(prevState => ({
         ...prevState,
+        secondTimer,
         timer,
       }));
     }
@@ -145,17 +150,39 @@ class Index extends Component {
 
   componentWillUnmount() {
     console.log('willunmount');
-    const { timer } = this.state;
+    const { timer, secondTimer } = this.state;
     this.clearInterval(timer);
+    this.clearInterval(secondTimer);
+  }
+
+  checkTweets() {
+    const { trutweets, token } = this.state;
+    Fetch.getReq('/api/trutweets', token).then((res) => {
+      if (res.length !== trutweets.length) {
+        this.setState(prevState => ({
+          ...prevState,
+          trutweets: res,
+        }));
+      }
+    });
   }
 
   incrementTweets() {
-    const { trutweets } = this.state;
+    const { trutweets, token } = this.state;
     const newTweets = trutweets.map((tweet) => {
-      if (tweet.progress < 100) {
-        tweet.progress = getProgress(tweet);
+      let tweetCopy = Object.assign({}, tweet);
+      if (tweetCopy.progress !== 100) {
+        Fetch.getReq(`/api/trutweets?_id=${tweet._id}`, token).then((res) => {
+          if (tweetCopy.upvotes !== res.upvotes) {
+            tweetCopy = Object.assign(tweetCopy, { upvotes: res.upvotes });
+          }
+          if (tweetCopy.downvotes !== res.downvotes) {
+            tweetCopy = Object.assign(tweetCopy, { downvotes: res.downvotes });
+          }
+        });
+        tweetCopy.progress = getProgress(tweetCopy);
       }
-      return tweet;
+      return tweetCopy;
     });
     this.setState(prevState => ({
       ...prevState,
@@ -280,6 +307,7 @@ class Index extends Component {
     };
     postReq('/api/trutweets', truTweet, token).then(() => {
       getReq('/api/trutweets', token).then((trutweets) => {
+        console.log('postTweet');
         trutweets = assignProgress(trutweets);
         this.setState(prevState => ({
           ...prevState,
