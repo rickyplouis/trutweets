@@ -29,6 +29,27 @@ const Fetch = require('../controllers/fetch');
 const { postReq, getReq } = Fetch;
 const { TextArea } = Input;
 
+const getProgress = (tweet) => {
+  let { timeStart, timeEnd } = tweet;
+  const now = moment(new Date());
+  timeStart = moment(timeStart);
+  timeEnd = moment(timeEnd);
+  if (now > timeEnd) {
+    return 100;
+  }
+  const duration = moment.duration(timeEnd.diff(timeStart));
+  const totalSeconds = duration.asSeconds();
+  const timePassed = moment.duration(now.diff(timeStart)).asSeconds();
+  return (timePassed / totalSeconds) * 100;
+};
+
+const assignProgress = (trutweets) => {
+  return trutweets.map((tweet) => {
+    tweet.progress = getProgress(tweet)
+    return tweet;
+  });
+};
+
 class Index extends Component {
   constructor(props) {
     super(props);
@@ -51,16 +72,39 @@ class Index extends Component {
     this.handleTweet = this.handleTweet.bind(this);
     this.handleProp = this.handleProp.bind(this);
     this.postTweet = this.postTweet.bind(this);
+    this.incrementTweets = this.incrementTweets.bind(this);
   }
 
   componentDidMount() {
     const { token } = this.state;
+    const timer = setInterval(this.incrementTweets, 1000);
     getReq('/api/trutweets', token).then((trutweets) => {
+      trutweets = assignProgress(trutweets);
       this.setState(prevState => ({
         ...prevState,
         trutweets,
+        timer
       }));
     });
+  }
+
+  componentWillUnmount() {
+    const { timer } = this.state;
+    this.clearInterval(timer);
+  }
+
+  incrementTweets() {
+    const { trutweets } = this.state;
+    const newTweets = trutweets.map((tweet) => {
+      if (tweet.progress < 100) {
+        tweet.progress = getProgress(tweet);
+      }
+      return tweet;
+    });
+    this.setState(prevState => ({
+      ...prevState,
+      trutweets: newTweets,
+    }));
   }
 
   handleProp(val, name) {
@@ -69,7 +113,6 @@ class Index extends Component {
       [name]: val,
     }));
   }
-
 
   handleTweet(evt) {
     this.handleProp(evt.target.value, 'currentTweet');
@@ -86,15 +129,18 @@ class Index extends Component {
       upvotes: [],
       downvotes: [],
       status: 'inProgress',
+      progress: 0,
     };
-    postReq('/api/trutweets', truTweet, token);
-    getReq('/api/trutweets', token).then((trutweets) => {
-      this.setState(prevState => ({
-        ...prevState,
-        currentTweet: '',
-        trutweets,
-      }));
-    });
+    postReq('/api/trutweets', truTweet, token).then(() => {
+      getReq('/api/trutweets', token).then((trutweets) => {
+        trutweets = assignProgress(trutweets);
+        this.setState(prevState => ({
+          ...prevState,
+          trutweets,
+          currentTweet: '',
+        }));
+      });
+    })
   }
 
   renderFeed() {
@@ -115,7 +161,11 @@ class Index extends Component {
                 description={`By ${tweet.creator}`}
               />
               <span>
-                <Progress percent={50} status="active" showInfo={false} style={{ padding: '10px' }} />
+                <Progress
+                  percent={tweet.progress}
+                  status="active"
+                  showInfo={false}
+                  style={{ padding: '10px' }} />
               </span>
             </Card>
           </Col>
@@ -143,7 +193,7 @@ class Index extends Component {
                     <Avatar icon="user" style={{ background: 'darkblue' }} />
                   </Col>
                   <Col span={22}>
-                    <TextArea rows={3} placeholder="What's on your mind?" onChange={this.handleTweet} />
+                    <TextArea rows={3} placeholder="What's on your mind?" onChange={this.handleTweet} value={currentTweet} />
                   </Col>
                 </Row>
                 <span style={{ textAlign: '-webkit-right', display: '-webkit-box', paddingTop: '10px' }}>
