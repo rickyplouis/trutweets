@@ -28,6 +28,7 @@
     "babel-plugin-import": "^1.8.0",
     "bcrypt": "^3.0.0",
     "body-parser": "^1.18.3",
+    "dompurify": "^1.0.7",
     "eslint": "^5.4.0",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-plugin-import": "^2.14.0",
@@ -38,6 +39,7 @@
     "mongoose": "^5.2.12",
     "morgan": "^1.9.0",
     "next": "latest",
+    "prop-types": "^15.6.2",
     "react": "^16.0.0",
     "react-dom": "^16.0.0"
   },

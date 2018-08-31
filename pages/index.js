@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import Link from 'next/link';
-import Head from 'next/head';
 import {
   Layout,
   Menu,
   Progress,
 } from 'antd';
+import Meta from '../components/Meta';
 
 const { Header, Content, Footer } = Layout;
 
@@ -21,11 +21,7 @@ class Index extends Component {
     const { text } = this.state;
     return (
       <div>
-        <Head>
-          <meta name="viewport" content="width=device-width, initial-scale=1" />
-          <meta charSet="utf-8" />
-          <link rel="stylesheet" href="/_next/static/style.css" />
-        </Head>
+        <Meta />
         <Layout>
           <Header style={{ position: 'fixed', zIndex: 1, width: '100%' }}>
             <div className="logo" />
