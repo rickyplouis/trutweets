@@ -14,6 +14,7 @@ const config = require('./config');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const trutweetRoutes = require('./routes/trutweetRoutes');
+const voteRoutes = require('./routes/voteRoutes');
 
 const { testDB } = config;
 
@@ -30,6 +31,7 @@ app.prepare()
     server.use('/api', [
       authRoutes,
       trutweetRoutes,
+      voteRoutes,
       userRoutes,
     ]);
 

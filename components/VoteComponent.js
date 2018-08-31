@@ -29,7 +29,7 @@ export default class VoteComponent extends React.Component {
 
   toggleDownvoteColor() {
     const { downvoteStyle } = this.state;
-    const color = downvoteStyle.color === 'gray' ? 'lightblue' : 'gray';
+    const color = downvoteStyle.color === 'gray' ? 'salmon' : 'gray';
     this.setState(prevState => ({
       ...prevState,
       downvoteStyle: {
@@ -61,7 +61,7 @@ export default class VoteComponent extends React.Component {
           />
         </span>
         {children}
-        <span style={downvoteType === 'dislike-o' ? downvoteStyle : { color: 'lightblue' }}>
+        <span style={downvoteType === 'dislike-o' ? downvoteStyle : { color: 'salmon' }}>
           <Icon
             onMouseEnter={this.toggleDownvoteColor}
             onMouseLeave={this.toggleDownvoteColor}

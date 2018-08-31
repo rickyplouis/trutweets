@@ -58,6 +58,7 @@ const assignProgress = (trutweets) => {
 };
 
 const handleRep = (_p_user, _p_target, token, action) => {
+  /**
   Fetch.getReq(`/api/users?_id=${_p_target}`, token).then((user) => {
     const amount = repAction[action];
 
@@ -77,6 +78,11 @@ const handleRep = (_p_user, _p_target, token, action) => {
       Fetch.postReq('/api/reputation', repBody, token).then(res => console.log('posted rep', res)),
     ]);
   });
+  **/
+  console.log('_p_user', _p_user);
+  console.log('_p_target', _p_target);
+  console.log('token', token);
+  console.log('action', action);
 };
 
 
@@ -185,9 +191,9 @@ class Index extends Component {
     this.putVote(body, selectedTweet, token);
   }
 
-  putVote(body, selectedAnnotation, token) {
-    this.handleProp(selectedAnnotation, 'selectedAnnotation');
-    Fetch.putReq(`/api/annotations?_id=${selectedAnnotation._id}`, body, token);
+  putVote(body, selectedTweet, token) {
+    // this.handleProp(selectedAnnotation, 'selectedAnnotation');
+    Fetch.putReq(`/api/trutweets?_id=${selectedTweet._id}`, body, token);
   }
 
 
@@ -202,7 +208,7 @@ class Index extends Component {
     const alreadyDownvoted = () => downvoteIndex >= 0;
 
     const voteBody = {
-      user,
+      _p_user: user,
       _p_annotation: selectedTweet._id,
       upvote: isUpvote,
       downvote: !isUpvote,

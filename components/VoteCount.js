@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const VoteContainer = ({ isPositve, children }) => (
-  <span style={{ marginLeft: '2%', marginRight: '2%', color: isPositve ? 'lightgreen' : 'lightblue' }}>
+  <span style={{ marginLeft: '2%', marginRight: '2%', color: isPositve ? 'lightgreen' : 'salmon' }}>
     {children}
   </span>
 );
