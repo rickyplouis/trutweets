@@ -58,35 +58,6 @@ const assignProgress = (trutweets = []) => {
   });
 };
 
-const handleRep = (_p_user, _p_target, token, action) => {
-  /**
-  Fetch.getReq(`/api/users?_id=${_p_target}`, token).then((user) => {
-    const amount = repAction[action];
-
-    const repBody = {
-      _p_user,
-      _p_target,
-      action,
-      amount,
-    };
-
-    const userBody = {
-      reputation: (user.reputation + amount),
-    };
-
-    Promise.all([
-      Fetch.putReq(`/api/users?_id=${_p_target}`, userBody, token).then(res => console.log('put user rep', res)),
-      Fetch.postReq('/api/reputation', repBody, token).then(res => console.log('posted rep', res)),
-    ]);
-  });
-  **/
-  console.log('_p_user', _p_user);
-  console.log('_p_target', _p_target);
-  console.log('token', token);
-  console.log('action', action);
-};
-
-
 const PostTweet = ({ handleTweet, currentTweet }) => (
   <Row>
     <Col span={2}>
@@ -116,12 +87,15 @@ class Index extends Component {
       decodedToken,
       trutweets: [],
       currentTweet: '',
+      fetchedUser: {},
     };
     this.handleTweet = this.handleTweet.bind(this);
     this.handleProp = this.handleProp.bind(this);
     this.postTweet = this.postTweet.bind(this);
     this.incrementTweets = this.incrementTweets.bind(this);
     this.checkTweets = this.checkTweets.bind(this);
+    this.awardWinners = this.awardWinners.bind(this);
+    this.penalizeLosers = this.penalizeLosers.bind(this);
   }
 
   componentDidMount() {
@@ -157,6 +131,36 @@ class Index extends Component {
     clearInterval(secondTimer);
   }
 
+  getStreak(user) {
+    let { trutweets } = this.state;
+    let streak = 0;
+    trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
+    console.log('sorted trutweets', trutweets);
+    for (let x = 0; x < trutweets.length; x += 1) {
+      const { upvotes, downvotes } = trutweets[x];
+      if (upvotes.length > downvotes.length) {
+        if (upvotes.indexOf(user) >= 0) {
+          console.log('adding to streak');
+          streak += 1;
+        }
+        if (downvotes.indexOf(user) >= 0) {
+          return streak;
+        }
+      }
+
+      if (downvotes.length > upvotes.length) {
+        if (downvotes.indexOf(user) >= 0) {
+          console.log('adding to streak');
+          streak += 1;
+        }
+        if (upvotes.indexOf(user) >= 0) {
+          return streak;
+        }
+      }
+    }
+    return streak;
+  }
+
   checkTweets() {
     const { trutweets, token } = this.state;
     Fetch.getReq('/api/trutweets', token).then((res) => {
@@ -167,6 +171,32 @@ class Index extends Component {
         }));
       }
     });
+  }
+
+  awardWinners(winnerArray) {
+    const { token, user } = this.state;
+    if (winnerArray.indexOf(user) >= 0) {
+      console.log('Im a winner');
+      console.log('my streak is', this.getStreak(user));
+    }
+  }
+
+  penalizeLosers(loserArray) {
+    const { token, user } = this.state;
+    if (loserArray.indexOf(user) >= 0) {
+      Fetch.getReq(`/api/users?_id=${user}`, token).then((userRes) => {
+        const body = {
+          reputation: userRes.reputation - 10,
+        };
+        Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
+          console.log('took 10 karma from', res);
+          this.setState(prevState => ({
+            ...prevState,
+            fetchedUser: res,
+          }));
+        });
+      });
+    }
   }
 
   incrementTweets() {
@@ -184,6 +214,29 @@ class Index extends Component {
             }
           });
           tweetCopy.progress = getProgress(tweetCopy);
+        } else if (tweetCopy.progress === 100 && tweetCopy.status === 'inProgress') {
+          const body = {
+            status: 'completed',
+          };
+          Fetch.putReq(`/api/trutweets?_id=${tweet._id}`, body, token).then(() => {
+            Fetch.getReq('/api/trutweets', token).then((res) => {
+              let winners = [];
+              let losers = [];
+              if (tweetCopy.upvotes.length > tweetCopy.downvotes.length) {
+                winners = tweetCopy.upvotes;
+                losers = tweetCopy.downvotes;
+              } else if (tweetCopy.downvotes.length > tweetCopy.upvotes.length) {
+                winners = tweetCopy.downvotes;
+                losers = tweetCopy.upvotes;
+              }
+              this.awardWinners(winners);
+              this.penalizeLosers(losers);
+              this.setState(prevState => ({
+                ...prevState,
+                trutweets: res,
+              }));
+            });
+          });
         }
         return tweetCopy;
       });
@@ -252,7 +305,6 @@ class Index extends Component {
         // isupvote and user already upvoted
         Fetch.postReq('/api/votes', voteBody, token);
         this.handleVote(isUpvote, false, upvoteIndex, selectedTweet);
-        handleRep(user, selectedTweet.creator, token, 'REMOVE_UPVOTE');
       } else if (alreadyDownvoted()) {
         // isupvote and user already downvoted
         // remove downvote and add upvote
@@ -264,18 +316,15 @@ class Index extends Component {
         };
         Fetch.postReq('/api/votes', voteBody, token);
         this.putVote(annotationBody, selectedTweet, token);
-        handleRep(user, selectedTweet.creator, token, 'UPVOTE');
       } else {
         // is upvote and user not yet voted
         this.handleVote(isUpvote, true, upvoteIndex, selectedTweet);
         Fetch.postReq('/api/votes', voteBody, token);
-        handleRep(user, selectedTweet.creator, token, 'UPVOTE');
       }
     } else if (alreadyDownvoted()) {
       // is downvote and user alreadyDownvoted
       Fetch.postReq('/api/votes', voteBody, token);
       this.handleVote(isUpvote, false, downvoteIndex, selectedTweet);
-      handleRep(user, selectedTweet.creator, token, 'REMOVE_DOWNVOTE');
     } else if (alreadyUpvoted()) {
       // isupvote and user already downvoted
       // remove upvote and add downvote
@@ -287,12 +336,10 @@ class Index extends Component {
       };
       Fetch.postReq('/api/votes', voteBody, token);
       this.putVote(annotationBody, selectedTweet, token);
-      handleRep(user, selectedTweet.creator, token, 'DOWNVOTE');
     } else {
       // is downvote and user note yet voted
       this.handleVote(isUpvote, true, downvoteIndex, selectedTweet);
       Fetch.postReq('/api/votes', voteBody, token);
-      handleRep(user, selectedTweet.creator, token, 'DOWNVOTE');
     }
   }
 
