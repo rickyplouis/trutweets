@@ -99,10 +99,24 @@ class Index extends Component {
   }
 
   componentDidMount() {
-    console.log('didmount');
-    const { token, trutweets } = this.state;
+    const {
+      token,
+      trutweets,
+      fetchedUser,
+      user,
+    } = this.state;
     const timer = setInterval(this.incrementTweets, 1000);
     const secondTimer = setInterval(this.checkTweets, 3000);
+
+    if (Object.keys(fetchedUser).length === 0) {
+      Fetch.getReq(`/api/users?_id=${user}`, token).then((res) => {
+        this.setState(prevState => ({
+          ...prevState,
+          fetchedUser: res,
+        }));
+      });
+    }
+
     if (trutweets.length === 0) {
       getReq('/api/trutweets', token).then((tweets) => {
         console.log('getAll from mount');
@@ -125,7 +139,6 @@ class Index extends Component {
   }
 
   componentWillUnmount() {
-    console.log('willunmount');
     const { timer, secondTimer } = this.state;
     clearInterval(timer);
     clearInterval(secondTimer);
@@ -135,12 +148,10 @@ class Index extends Component {
     let { trutweets } = this.state;
     let streak = 0;
     trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
-    console.log('sorted trutweets', trutweets);
     for (let x = 0; x < trutweets.length; x += 1) {
       const { upvotes, downvotes } = trutweets[x];
       if (upvotes.length > downvotes.length) {
         if (upvotes.indexOf(user) >= 0) {
-          console.log('adding to streak');
           streak += 1;
         }
         if (downvotes.indexOf(user) >= 0) {
@@ -150,7 +161,6 @@ class Index extends Component {
 
       if (downvotes.length > upvotes.length) {
         if (downvotes.indexOf(user) >= 0) {
-          console.log('adding to streak');
           streak += 1;
         }
         if (upvotes.indexOf(user) >= 0) {
@@ -175,9 +185,40 @@ class Index extends Component {
 
   awardWinners(winnerArray) {
     const { token, user } = this.state;
+    let points = 0;
     if (winnerArray.indexOf(user) >= 0) {
-      console.log('Im a winner');
-      console.log('my streak is', this.getStreak(user));
+      const streak = this.getStreak(user);
+      if (streak > 3) {
+        const adjustedStreak = streak % 3;
+        if (adjustedStreak === 0) {
+          points = 50;
+        }
+        if (adjustedStreak === 1) {
+          points = 10;
+        }
+        if (adjustedStreak === 2) {
+          points = 20;
+        }
+      } else {
+        if (streak === 1) {
+          points = 10;
+        }
+        if (streak === 2) {
+          points = 20;
+        }
+        if (streak === 3) {
+          points = 50;
+        }
+      }
+      const body = {
+        reputation: points,
+      };
+      Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
+        this.setState(prevState => ({
+          ...prevState,
+          fetchedUser: res,
+        }));
+      });
     }
   }
 
@@ -189,7 +230,6 @@ class Index extends Component {
           reputation: userRes.reputation - 10,
         };
         Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
-          console.log('took 10 karma from', res);
           this.setState(prevState => ({
             ...prevState,
             fetchedUser: res,
@@ -358,7 +398,6 @@ class Index extends Component {
     };
     postReq('/api/trutweets', truTweet, token).then(() => {
       getReq('/api/trutweets', token).then((trutweets) => {
-        console.log('postTweet');
         trutweets = assignProgress(trutweets);
         this.setState(prevState => ({
           ...prevState,
@@ -366,7 +405,7 @@ class Index extends Component {
           currentTweet: '',
         }));
       });
-    })
+    });
   }
 
   render() {
@@ -377,6 +416,7 @@ class Index extends Component {
       token,
       trutweets,
       currentTweet,
+      fetchedUser,
     } = this.state;
     return (
       <div>
@@ -384,96 +424,108 @@ class Index extends Component {
           decodedToken && user.length > 0
             ? (
               <Container activePath={['1']}>
-                <PostTweet
-                  currentTweet={currentTweet}
-                  handleTweet={this.handleTweet}
-                />
-                <span style={{ textAlign: '-webkit-right', display: '-webkit-box', paddingTop: '10px' }}>
-                  {currentTweet.length > 280 && <span style={{ color: 'red' }}>TruTweets must be less than 280 chars </span>}
-                  <Button
-                    disabled={currentTweet.length === 0 || currentTweet.length > 280}
-                    onClick={this.postTweet}
-                  >
-                    Submit
-                  </Button>
-                </span>
-                { token && trutweets.length > 0 ? (
-                  trutweets
-                    .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart))
-                    .slice(0, 10)
-                    .map(tweet => (
-                      <Row style={{ paddingTop: '10px' }} key={tweet._id}>
-                        <Col span={24}>
-                          <Card
-                            style={{ width: '100%' }}
-                          >
-                            <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
-                              {tweet.text}
-                            </h3>
-                            <Meta
-                              style={{ paddingLeft: '10px' }}
-                              avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
-                              description={`By ${tweet.creator}`}
-                            />
-                            <span>
-                              {
-                                tweet.progress !== 100 ? (
-                                  <div>
-                                    <Progress
-                                      percent={tweet.progress}
-                                      status="active"
-                                      showInfo={false}
-                                      style={{ padding: '10px' }}
-                                    />
-                                    <VoteComponent
-                                      token={token}
-                                      upvoteType={renderIcon(tweet, user, true)}
-                                      downvoteType={renderIcon(tweet, user, false)}
-                                      onUpvote={evt => this.vote(evt, true, tweet)}
-                                      onDownvote={evt => this.vote(evt, false, tweet)}
-                                    >
-                                      <VoteCount tweet={tweet} />
-                                    </VoteComponent>
-                                  </div>
-                                ) : (
-                                  <span>
-                                    {
-                                      (tweet.upvotes.length > tweet.downvotes.length)
-                                      && (
-                                        <span>
-                                          <Icon type="check" style={{ color: 'lightgreen', fontSize: '25px' }} />
-                                          {' Valid'}
-                                        </span>
-                                      )
-                                    }
-                                    {
-                                      (tweet.upvotes.length < tweet.downvotes.length) && (
-                                        <span>
-                                          <Icon type="close-circle" style={{ color: 'salmon', fontSize: '25px' }} />
-                                          {' Invalid'}
-                                        </span>
-                                      )
-                                    }
-                                    {
-                                      (tweet.upvotes.length === tweet.downvotes.length) && (
-                                        <span>
-                                          <Icon type="question-circle" style={{ color: 'grey', fontSize: '25px' }} />
-                                          {' Questionable'}
-                                        </span>
-                                      )
-                                    }
-                                  </span>
-                                )
-                              }
-                            </span>
-                          </Card>
-                        </Col>
-                      </Row>
-                    ))
-                ) : (
-                  <div>Loading Tweets</div>
-                )
-              }
+                <Row>
+                  <Col span={24}>
+                    <PostTweet
+                      currentTweet={currentTweet}
+                      handleTweet={this.handleTweet}
+                    />
+                    <span style={{ textAlign: 'center', paddingTop: '10px', paddingBottom: '10px', display: 'block' }}>
+                      <span style={{ float: 'left' }}>
+                        {`Reputation: ${fetchedUser.reputation}`}
+                      </span>
+                      <span style={{ display: 'inline' }}>
+                        {`Current Streak: ${this.getStreak(fetchedUser._id)}`}
+                      </span>
+                      <span style={{ float: 'right' }}>
+                        {currentTweet.length > 280 && <span style={{ color: 'red' }}>TruTweets must be less than 280 chars </span>}
+                        <Button
+                          disabled={currentTweet.length === 0 || currentTweet.length > 280}
+                          onClick={this.postTweet}
+                        >
+                            Submit
+                        </Button>
+                      </span>
+                    </span>
+                    { token && trutweets.length > 0 ? (
+                      trutweets
+                        .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart))
+                        .slice(0, 10)
+                        .map(tweet => (
+                          <Row style={{ paddingTop: '10px' }} key={tweet._id}>
+                            <Col span={24}>
+                              <Card
+                                style={{ width: '100%' }}
+                              >
+                                <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
+                                  {tweet.text}
+                                </h3>
+                                <Meta
+                                  style={{ paddingLeft: '10px' }}
+                                  avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
+                                  description={`By ${tweet.creator}`}
+                                />
+                                <span>
+                                  {
+                                    tweet.progress !== 100 ? (
+                                      <div>
+                                        <Progress
+                                          percent={tweet.progress}
+                                          status="active"
+                                          showInfo={false}
+                                          style={{ padding: '10px' }}
+                                        />
+                                        <VoteComponent
+                                          token={token}
+                                          upvoteType={renderIcon(tweet, user, true)}
+                                          downvoteType={renderIcon(tweet, user, false)}
+                                          onUpvote={evt => this.vote(evt, true, tweet)}
+                                          onDownvote={evt => this.vote(evt, false, tweet)}
+                                        >
+                                          <VoteCount tweet={tweet} />
+                                        </VoteComponent>
+                                      </div>
+                                    ) : (
+                                      <span>
+                                        {
+                                          (tweet.upvotes.length > tweet.downvotes.length)
+                                          && (
+                                            <span>
+                                              <Icon type="check" style={{ color: 'lightgreen', fontSize: '25px' }} />
+                                              {' Valid'}
+                                            </span>
+                                          )
+                                        }
+                                        {
+                                          (tweet.upvotes.length < tweet.downvotes.length) && (
+                                            <span>
+                                              <Icon type="close-circle" style={{ color: 'salmon', fontSize: '25px' }} />
+                                              {' Invalid'}
+                                            </span>
+                                          )
+                                        }
+                                        {
+                                          (tweet.upvotes.length === tweet.downvotes.length) && (
+                                            <span>
+                                              <Icon type="question-circle" style={{ color: 'grey', fontSize: '25px' }} />
+                                              {' Questionable'}
+                                            </span>
+                                          )
+                                        }
+                                      </span>
+                                    )
+                                  }
+                                </span>
+                              </Card>
+                            </Col>
+                          </Row>
+                        ))
+                    ) : (
+                      <div>Loading Tweets</div>
+                    )
+                  }
+                  </Col>
+                </Row>
               </Container>
             ) : (
               <Container activePath={['1']}>

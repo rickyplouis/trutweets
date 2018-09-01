@@ -70,6 +70,7 @@ class NormalLoginForm extends React.Component {
         name: sanitize(name),
         email: sanitize(email),
         password: sanitize(password),
+        reputation: 100,
       };
       if (!err) {
         Fetch.postReq('/api/signup', sanitizedValues).then((val) => {

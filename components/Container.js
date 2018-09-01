@@ -12,7 +12,7 @@ const Container = ({ children, activePath }) => (
   <Layout>
     <Navbar activePath={activePath} />
     <Meta />
-    <Content style={{ padding: '24px 50px', marginTop: 64 }}>
+    <Content style={{ padding: '24px', marginTop: 64 }}>
       <div style={{ background: '#fff', padding: 24, minHeight: 380 }}>
         {children}
       </div>
