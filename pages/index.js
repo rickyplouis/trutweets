@@ -58,7 +58,7 @@ const assignProgress = (trutweets = []) => {
   });
 };
 
-const add24Hours = date => moment(date).add(24, 'hours').format("dddd, MMMM Do YYYY, h:mm:ss a");
+const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
 
 const PostTweet = ({ handleTweet, currentTweet }) => (
   <Row>
@@ -172,60 +172,19 @@ class Index extends Component {
     return streak;
   }
 
-  awardWinners(winnerArray) {
-    const { token, user } = this.state;
-    let points = 0;
-    if (winnerArray.indexOf(user) >= 0) {
-      const streak = this.getStreak(user);
-      if (streak > 3) {
-        const adjustedStreak = streak % 3;
-        if (adjustedStreak === 0) {
-          points = 50;
-        }
-        if (adjustedStreak === 1) {
-          points = 10;
-        }
-        if (adjustedStreak === 2) {
-          points = 20;
-        }
-      } else {
-        if (streak === 1) {
-          points = 10;
-        }
-        if (streak === 2) {
-          points = 20;
-        }
-        if (streak === 3) {
-          points = 50;
+  getLastTweet(user) {
+    let { trutweets } = this.state;
+    if (Array.isArray(trutweets) && trutweets.length > 0) {
+      trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
+      for (let x = 0; x < trutweets.length; x += 1) {
+        const currentTweet = trutweets[x];
+        const { upvotes, downvotes } = currentTweet;
+        if (upvotes.indexOf(user) >= 0 || downvotes.indexOf(user) >= 0) {
+          return currentTweet.timeStart;
         }
       }
-      const body = {
-        reputation: points,
-      };
-      Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
-        this.setState(prevState => ({
-          ...prevState,
-          fetchedUser: res,
-        }));
-      });
     }
-  }
-
-  penalizeLosers(loserArray) {
-    const { token, user } = this.state;
-    if (loserArray.indexOf(user) >= 0) {
-      Fetch.getReq(`/api/users?_id=${user}`, token).then((userRes) => {
-        const body = {
-          reputation: userRes.reputation - 10,
-        };
-        Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
-          this.setState(prevState => ({
-            ...prevState,
-            fetchedUser: res,
-          }));
-        });
-      });
-    }
+    return false;
   }
 
   incrementTweets() {
@@ -279,19 +238,61 @@ class Index extends Component {
     }
   }
 
-  getLastTweet(user) {
-    let { trutweets } = this.state;
-    if (Array.isArray(trutweets) && trutweets.length > 0) {
-      trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
-      for (let x = 0; x < trutweets.length; x += 1) {
-        const currentTweet = trutweets[x];
-        const { upvotes, downvotes } = currentTweet;
-        if (upvotes.indexOf(user) >= 0 || downvotes.indexOf(user) >= 0) {
-          return currentTweet.timeStart;
+  penalizeLosers(loserArray) {
+    const { token, user } = this.state;
+    if (loserArray.indexOf(user) >= 0) {
+      Fetch.getReq(`/api/users?_id=${user}`, token).then((userRes) => {
+        const body = {
+          reputation: userRes.reputation - 10,
+        };
+        Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
+          this.setState(prevState => ({
+            ...prevState,
+            fetchedUser: res,
+          }));
+        });
+      });
+    }
+  }
+
+
+  awardWinners(winnerArray) {
+    const { token, user } = this.state;
+    let points = 0;
+    if (winnerArray.indexOf(user) >= 0) {
+      const streak = this.getStreak(user);
+      if (streak > 3) {
+        const adjustedStreak = streak % 3;
+        if (adjustedStreak === 0) {
+          points = 50;
+        }
+        if (adjustedStreak === 1) {
+          points = 10;
+        }
+        if (adjustedStreak === 2) {
+          points = 20;
+        }
+      } else {
+        if (streak === 1) {
+          points = 10;
+        }
+        if (streak === 2) {
+          points = 20;
+        }
+        if (streak === 3) {
+          points = 50;
         }
       }
+      const body = {
+        reputation: points,
+      };
+      Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
+        this.setState(prevState => ({
+          ...prevState,
+          fetchedUser: res,
+        }));
+      });
     }
-    return false;
   }
 
   checkTweets() {
@@ -357,7 +358,6 @@ class Index extends Component {
   }
 
   putVote(body, selectedTweet, token) {
-    // this.handleProp(selectedAnnotation, 'selectedAnnotation');
     Fetch.putReq(`/api/trutweets?_id=${selectedTweet._id}`, body, token);
   }
 
