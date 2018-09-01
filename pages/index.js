@@ -281,12 +281,14 @@ class Index extends Component {
 
   getLastTweet(user) {
     let { trutweets } = this.state;
-    trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
-    for (let x = 0; x < trutweets.length; x += 1) {
-      const currentTweet = trutweets[x];
-      const { upvotes, downvotes } = currentTweet;
-      if (upvotes.indexOf(user) >= 0 || downvotes.indexOf(user) >= 0) {
-        return currentTweet.timeStart;
+    if (Array.isArray(trutweets) && trutweets.length > 0) {
+      trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
+      for (let x = 0; x < trutweets.length; x += 1) {
+        const currentTweet = trutweets[x];
+        const { upvotes, downvotes } = currentTweet;
+        if (upvotes.indexOf(user) >= 0 || downvotes.indexOf(user) >= 0) {
+          return currentTweet.timeStart;
+        }
       }
     }
     return false;
@@ -299,18 +301,20 @@ class Index extends Component {
       user,
       fetchedUser,
     } = this.state;
-    const replenishDate = moment(this.getLastTweet(user)).add(24, 'hours');
-    const now = new Date();
-    if (fetchedUser.reputation <= 0 && moment(now).isAfter(replenishDate)) {
-      const body = {
-        reputation: 10,
-      };
-      Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
-        this.setState(prevState => ({
-          ...prevState,
-          fetchedUser: res,
-        }));
-      });
+    if (trutweets) {
+      const replenishDate = moment(this.getLastTweet(user)).add(24, 'hours');
+      const now = new Date();
+      if (fetchedUser.reputation <= 0 && moment(now).isAfter(replenishDate)) {
+        const body = {
+          reputation: 10,
+        };
+        Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
+          this.setState(prevState => ({
+            ...prevState,
+            fetchedUser: res,
+          }));
+        });
+      }
     }
     Fetch.getReq('/api/trutweets', token).then((res) => {
       if (res.length !== trutweets.length) {
