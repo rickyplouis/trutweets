@@ -589,10 +589,17 @@ class Index extends Component {
               </Container>
             ) : (
               <Container activePath={['1']}>
-                <Link href="/login" as="/login"><a href="/Login">Login</a></Link>
-                or
-                <Link href="/signup" as="/signup"><a href="/signup">Signup</a></Link>
-                to begin using TruTweets
+                <h2 style={{ textAlign: 'center' }}>
+                  Welcome to TruTweets
+                </h2>
+                <Row gutter={10}>
+                  <Col span={12} style={{ textAlign: 'right' }}>
+                    <Link href="/login" as="/login"><a href="/Login"><Button type="primary">Login</Button></a></Link>
+                  </Col>
+                  <Col span={12} style={{ textAlign: 'left' }}>
+                    <Link href="/signup" as="/signup"><a href="/signup"><Button>Signup</Button></a></Link>
+                  </Col>
+                </Row>
               </Container>
             )
         }
