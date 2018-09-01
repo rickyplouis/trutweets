@@ -15,6 +15,7 @@ router.route('/trutweets').get((req, res) => {
   const {
     text,
     creator,
+    creatorName,
     timeStart,
     timeEnd,
     upvotes,
@@ -25,6 +26,7 @@ router.route('/trutweets').get((req, res) => {
   const trutweetBody = new Trutweet({
     text,
     creator,
+    creatorName,
     timeStart,
     timeEnd,
     upvotes,

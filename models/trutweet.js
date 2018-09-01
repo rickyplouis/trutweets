@@ -6,6 +6,7 @@ const { Schema } = mongoose;
 const TruTweetSchema = new Schema({
   text: String,
   creator: String,
+  creatorName: String,
   timeStart: Date,
   timeEnd: Date,
   upvotes: Array,

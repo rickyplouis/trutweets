@@ -424,11 +424,17 @@ class Index extends Component {
   }
 
   postTweet() {
-    const { currentTweet, user, token } = this.state;
+    const {
+      currentTweet,
+      user,
+      fetchedUser,
+      token,
+    } = this.state;
     const now = new Date();
     const truTweet = {
       text: currentTweet,
       creator: user,
+      creatorName: fetchedUser.name,
       timeStart: now,
       timeEnd: moment(now).add(30, 's').toDate(),
       upvotes: [],
@@ -508,7 +514,7 @@ class Index extends Component {
                                 <Meta
                                   style={{ paddingLeft: '10px' }}
                                   avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
-                                  description={`By ${tweet.creator}`}
+                                  description={`By ${tweet.creatorName}`}
                                 />
                                 <span>
                                   {
