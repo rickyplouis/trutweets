@@ -58,6 +58,8 @@ const assignProgress = (trutweets = []) => {
   });
 };
 
+const add24Hours = date => moment(date).add(24, 'hours').format("dddd, MMMM Do YYYY, h:mm:ss a");
+
 const PostTweet = ({ handleTweet, currentTweet }) => (
   <Row>
     <Col span={2}>
@@ -119,7 +121,6 @@ class Index extends Component {
 
     if (trutweets.length === 0) {
       getReq('/api/trutweets', token).then((tweets) => {
-        console.log('getAll from mount');
         if (Array.isArray(tweets)) {
           tweets = assignProgress(tweets);
           this.setState(prevState => ({
@@ -169,18 +170,6 @@ class Index extends Component {
       }
     }
     return streak;
-  }
-
-  checkTweets() {
-    const { trutweets, token } = this.state;
-    Fetch.getReq('/api/trutweets', token).then((res) => {
-      if (res.length !== trutweets.length) {
-        this.setState(prevState => ({
-          ...prevState,
-          trutweets: res,
-        }));
-      }
-    });
   }
 
   awardWinners(winnerArray) {
@@ -240,7 +229,10 @@ class Index extends Component {
   }
 
   incrementTweets() {
-    const { trutweets, token } = this.state;
+    const {
+      trutweets,
+      token,
+    } = this.state;
     if (Array.isArray(trutweets)) {
       const newTweets = trutweets.map((tweet) => {
         let tweetCopy = Object.assign({}, tweet);
@@ -286,6 +278,50 @@ class Index extends Component {
       }));
     }
   }
+
+  getLastTweet(user) {
+    let { trutweets } = this.state;
+    trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
+    for (let x = 0; x < trutweets.length; x += 1) {
+      const currentTweet = trutweets[x];
+      const { upvotes, downvotes } = currentTweet;
+      if (upvotes.indexOf(user) >= 0 || downvotes.indexOf(user) >= 0) {
+        return currentTweet.timeStart;
+      }
+    }
+    return false;
+  }
+
+  checkTweets() {
+    const {
+      trutweets,
+      token,
+      user,
+      fetchedUser,
+    } = this.state;
+    const replenishDate = moment(this.getLastTweet(user)).add(24, 'hours');
+    const now = new Date();
+    if (fetchedUser.reputation <= 0 && moment(now).isAfter(replenishDate)) {
+      const body = {
+        reputation: 10,
+      };
+      Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
+        this.setState(prevState => ({
+          ...prevState,
+          fetchedUser: res,
+        }));
+      });
+    }
+    Fetch.getReq('/api/trutweets', token).then((res) => {
+      if (res.length !== trutweets.length) {
+        this.setState(prevState => ({
+          ...prevState,
+          trutweets: res,
+        }));
+      }
+    });
+  }
+
 
   handleProp(val, name) {
     this.setState(prevState => ({
@@ -409,7 +445,6 @@ class Index extends Component {
   }
 
   render() {
-    console.log('render');
     const {
       user,
       decodedToken,
@@ -430,13 +465,19 @@ class Index extends Component {
                       currentTweet={currentTweet}
                       handleTweet={this.handleTweet}
                     />
-                    <span style={{ textAlign: 'center', paddingTop: '10px', paddingBottom: '10px', display: 'block' }}>
-                      <span style={{ float: 'left' }}>
+                    <span style={{
+                      textAlign: 'center',
+                      paddingTop: '10px',
+                      paddingBottom: '10px',
+                      display: 'block',
+                    }}
+                    >
+                      <h3 style={{ float: 'left' }}>
                         {`Reputation: ${fetchedUser.reputation}`}
-                      </span>
-                      <span style={{ display: 'inline' }}>
+                      </h3>
+                      <h3 style={{ display: 'inline' }}>
                         {`Current Streak: ${this.getStreak(fetchedUser._id)}`}
-                      </span>
+                      </h3>
                       <span style={{ float: 'right' }}>
                         {currentTweet.length > 280 && <span style={{ color: 'red' }}>TruTweets must be less than 280 chars </span>}
                         <Button
@@ -475,15 +516,24 @@ class Index extends Component {
                                           showInfo={false}
                                           style={{ padding: '10px' }}
                                         />
-                                        <VoteComponent
-                                          token={token}
-                                          upvoteType={renderIcon(tweet, user, true)}
-                                          downvoteType={renderIcon(tweet, user, false)}
-                                          onUpvote={evt => this.vote(evt, true, tweet)}
-                                          onDownvote={evt => this.vote(evt, false, tweet)}
-                                        >
-                                          <VoteCount tweet={tweet} />
-                                        </VoteComponent>
+                                        {
+                                          fetchedUser.reputation > 0
+                                            ? (
+                                              <VoteComponent
+                                                token={token}
+                                                upvoteType={renderIcon(tweet, user, true)}
+                                                downvoteType={renderIcon(tweet, user, false)}
+                                                onUpvote={evt => this.vote(evt, true, tweet)}
+                                                onDownvote={evt => this.vote(evt, false, tweet)}
+                                              >
+                                                <VoteCount tweet={tweet} />
+                                              </VoteComponent>
+                                            ) : (
+                                              <div>
+                                                {`Your karma is too low you can't vote again until ${add24Hours(this.getLastTweet(user))}`}
+                                              </div>
+                                            )
+                                        }
                                       </div>
                                     ) : (
                                       <span>
