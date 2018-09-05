@@ -32,7 +32,6 @@ const {
 const Fetch = require('../controllers/fetch');
 
 const { postReq, getReq } = Fetch;
-const { TextArea } = Input;
 
 const renderIcon = (selectedAnnotation = { upvotes: [], downvotes: [] }, currentUser = '', isLikeIcon) => {
   const { upvotes, downvotes } = selectedAnnotation;
