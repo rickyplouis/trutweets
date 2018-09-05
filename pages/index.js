@@ -10,7 +10,12 @@ import {
   Progress,
   Row,
 } from 'antd';
-import { Container, VoteCount, VoteComponent } from '../components/list';
+import {
+  Container,
+  PostTweet,
+  VoteCount,
+  VoteComponent,
+} from '../components/list';
 
 const { Meta } = Card;
 const moment = require('moment');
@@ -60,16 +65,6 @@ const assignProgress = (trutweets = []) => {
 
 const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
 
-const PostTweet = ({ handleTweet, currentTweet }) => (
-  <Row>
-    <Col span={2}>
-      <Avatar icon="user" style={{ background: 'darkblue' }} />
-    </Col>
-    <Col span={22}>
-      <TextArea rows={3} placeholder="What's on your mind?" onChange={handleTweet} value={currentTweet} />
-    </Col>
-  </Row>
-);
 
 class Index extends Component {
   constructor(props) {
