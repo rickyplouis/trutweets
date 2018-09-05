@@ -5,7 +5,6 @@ import {
   Button,
   Card,
   Col,
-  Input,
   Icon,
   Progress,
   Row,
@@ -55,12 +54,10 @@ const getProgress = (tweet) => {
   return (timePassed / totalSeconds) * 100;
 };
 
-const assignProgress = (trutweets = []) => {
-  return trutweets.map((tweet) => {
-    tweet.progress = getProgress(tweet)
-    return tweet;
-  });
-};
+const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
+  const tweetCopy = Object.assign({}, tweet, { progress: getProgress(tweet) });
+  return tweetCopy;
+});
 
 const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
 
@@ -188,14 +185,14 @@ class Index extends Component {
     } = this.state;
     if (Array.isArray(trutweets)) {
       const newTweets = trutweets.map((tweet) => {
-        let tweetCopy = Object.assign({}, tweet);
+        const tweetCopy = Object.assign({}, tweet);
         if (tweetCopy.progress !== 100) {
           Fetch.getReq(`/api/trutweets?_id=${tweet._id}`, token).then((res) => {
             if (tweetCopy.upvotes !== res.upvotes) {
-              tweetCopy = Object.assign(tweetCopy, { upvotes: res.upvotes });
+              tweetCopy.upvotes = res.upvotes;
             }
             if (tweetCopy.downvotes !== res.downvotes) {
-              tweetCopy = Object.assign(tweetCopy, { downvotes: res.downvotes });
+              tweetCopy.downvotes = res.downvotes;
             }
           });
           tweetCopy.progress = getProgress(tweetCopy);
