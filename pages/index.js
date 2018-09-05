@@ -459,10 +459,12 @@ class Index extends Component {
       user,
       decodedToken,
       token,
-      trutweets,
       currentTweet,
       fetchedUser,
     } = this.state;
+    let { trutweets } = this.state;
+    trutweets = trutweets.slice(0, 10)
+      .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
     return (
       <div>
         {
@@ -500,8 +502,6 @@ class Index extends Component {
                     </span>
                     { token && trutweets.length > 0 ? (
                       trutweets
-                        .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart))
-                        .slice(0, 10)
                         .map(tweet => (
                           <Row style={{ paddingTop: '10px' }} key={tweet._id}>
                             <Col span={24}>
@@ -521,6 +521,7 @@ class Index extends Component {
                                     tweet.progress !== 100 ? (
                                       <div>
                                         <Progress
+                                          key={tweet._id + tweet.progress}
                                           percent={tweet.progress}
                                           status="active"
                                           showInfo={false}
