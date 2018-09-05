@@ -55,7 +55,8 @@ const getProgress = (tweet) => {
 };
 
 const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
-  const tweetCopy = Object.assign({}, tweet, { progress: getProgress(tweet) });
+  const tweetCopy = Object.assign({}, tweet);
+  tweetCopy.progress = getProgress(tweet);
   return tweetCopy;
 });
 

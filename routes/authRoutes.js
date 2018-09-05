@@ -20,19 +20,8 @@ authRoutes.post('/signup', (req, res) => {
     const user = new User({
       email: req.body.email,
       name: req.body.name,
+      reputation: req.body.reputation,
       password: hash,
-      bio: '',
-      admin: false,
-      titles: [],
-      job: '',
-      linkedIn: '',
-      twitter: '',
-      medium: '',
-      interest: [],
-      experience: 0,
-      motivation: [],
-      subscribed: false,
-      reputation: 0,
       joined: new Date(),
     });
 
