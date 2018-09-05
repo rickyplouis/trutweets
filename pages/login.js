@@ -10,6 +10,8 @@ import {
 import Router from 'next/router';
 import { Container, HoverModal } from '../components/list';
 
+const createDOMPurify = require('dompurify');
+
 const Styles = {
   loginForm: {
     textAlign: 'center',
@@ -19,13 +21,13 @@ const Styles = {
   },
 };
 
-const PaperController = require('../controllers/paperController');
 const Fetch = require('../controllers/fetch');
 const config = require('../config');
 
 const FormItem = Form.Item;
 
-const { sanitize } = PaperController;
+const sanitize = input => createDOMPurify.sanitize(input);
+
 
 function hasErrors(fieldsError) {
   return Object.keys(fieldsError).some(field => fieldsError[field]);
