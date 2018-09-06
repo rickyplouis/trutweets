@@ -14,8 +14,8 @@ const PostTweet = ({
   handleTweet,
   currentTweet,
   postTweet,
-  getStreak,
   fetchedUser,
+  currentStreak,
 }) => (
   <span>
     <Row>
@@ -38,7 +38,7 @@ const PostTweet = ({
           {`Reputation: ${fetchedUser.reputation}`}
         </h3>
         <h3 style={{ display: 'inline' }}>
-          {`Current Streak: ${getStreak(fetchedUser._id) % 3}`}
+          {`Current Streak: ${currentStreak}`}
         </h3>
         <span style={{ float: 'right' }}>
           {currentTweet.length > 280 && <span style={{ color: 'red' }}>TruTweets must be less than 280 chars </span>}
@@ -60,11 +60,11 @@ PostTweet.propTypes = {
   handleTweet: PropTypes.func.isRequired,
   currentTweet: PropTypes.string,
   postTweet: PropTypes.func.isRequired,
-  getStreak: PropTypes.func.isRequired,
   fetchedUser: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     reputation: PropTypes.number.isRequired,
   }).isRequired,
+  currentStreak: PropTypes.number.isRequired,
 };
 
 PostTweet.defaultProps = {

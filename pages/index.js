@@ -49,6 +49,33 @@ const Fetch = require('../controllers/fetch');
 
 const { postReq } = Fetch;
 
+const getStreak = (user, trutweets) => {
+  let streak = 0;
+  const copyOfTweets = trutweets.slice()
+    .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
+  for (let x = 0; x < copyOfTweets.length; x += 1) {
+    const { upvotes, downvotes } = copyOfTweets[x];
+    if (upvotes.length > downvotes.length) {
+      if (upvotes.indexOf(user) >= 0) {
+        streak += 1;
+      }
+      if (downvotes.indexOf(user) >= 0) {
+        return streak;
+      }
+    }
+
+    if (downvotes.length > upvotes.length) {
+      if (downvotes.indexOf(user) >= 0) {
+        streak += 1;
+      }
+      if (upvotes.indexOf(user) >= 0) {
+        return streak;
+      }
+    }
+  }
+  return streak;
+};
+
 
 class Index extends Component {
   constructor(props) {
@@ -72,7 +99,6 @@ class Index extends Component {
     };
     this.awardWinners = this.awardWinners.bind(this);
     this.checkTweets = this.checkTweets.bind(this);
-    this.getStreak = this.getStreak.bind(this);
     this.handleTweet = this.handleTweet.bind(this);
     this.handleProp = this.handleProp.bind(this);
     this.incrementTweets = this.incrementTweets.bind(this);
@@ -103,9 +129,10 @@ class Index extends Component {
     if (trutweets.length === 0) {
       getAllTweets(token).then((tweets) => {
         if (Array.isArray(tweets)) {
+          const updatedTweets = assignProgress(tweets);
           this.setState(prevState => ({
             ...prevState,
-            trutweets: assignProgress(tweets),
+            trutweets: updatedTweets,
             timer,
           }));
         }
@@ -123,33 +150,6 @@ class Index extends Component {
     const { timer, secondTimer } = this.state;
     clearInterval(timer);
     clearInterval(secondTimer);
-  }
-
-  getStreak(user) {
-    let { trutweets } = this.state;
-    let streak = 0;
-    trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
-    for (let x = 0; x < trutweets.length; x += 1) {
-      const { upvotes, downvotes } = trutweets[x];
-      if (upvotes.length > downvotes.length) {
-        if (upvotes.indexOf(user) >= 0) {
-          streak += 1;
-        }
-        if (downvotes.indexOf(user) >= 0) {
-          return streak;
-        }
-      }
-
-      if (downvotes.length > upvotes.length) {
-        if (downvotes.indexOf(user) >= 0) {
-          streak += 1;
-        }
-        if (upvotes.indexOf(user) >= 0) {
-          return streak;
-        }
-      }
-    }
-    return streak;
   }
 
   getLastTweet(user) {
@@ -219,7 +219,7 @@ class Index extends Component {
   }
 
   penalizeLosers(loserArray) {
-    const { token, user, fetchedUser } = this.state;
+    const { user, fetchedUser } = this.state;
     if (loserArray.indexOf(user) >= 0) {
       const body = {
         reputation: fetchedUser.reputation - 10,
@@ -229,9 +229,9 @@ class Index extends Component {
   }
 
   awardWinners(winnerArray) {
-    const { token, user, fetchedUser } = this.state;
+    const { user, fetchedUser, trutweets } = this.state;
     if (winnerArray.indexOf(user) >= 0) {
-      const streak = this.getStreak(user);
+      const streak = getStreak(user, trutweets);
       const body = {
         reputation: fetchedUser.reputation + getPoints(streak),
       };
@@ -374,9 +374,10 @@ class Index extends Component {
     };
     postReq('/api/trutweets', truTweet, token).then(() => {
       getAllTweets(token).then((trutweets) => {
+        const updatedTweets = assignProgress(trutweets);
         this.setState(prevState => ({
           ...prevState,
-          trutweets: assignProgress(trutweets),
+          trutweets: updatedTweets,
           currentTweet: '',
         }));
       });
@@ -406,7 +407,7 @@ class Index extends Component {
                       currentTweet={currentTweet}
                       handleTweet={this.handleTweet}
                       postTweet={this.postTweet}
-                      getStreak={this.getStreak}
+                      currentStreak={getStreak(fetchedUser._id, trutweets) % 4}
                       fetchedUser={fetchedUser}
                     />
                     { token && trutweets.length > 0 ? (
