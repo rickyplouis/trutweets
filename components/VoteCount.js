@@ -20,8 +20,6 @@ export default class VoteCount extends React.Component {
     let voteText;
     if (voteCount > 0) {
       voteText = `+${voteCount}`;
-    } else if (voteCount === 0) {
-      voteText = voteCount;
     } else {
       voteText = voteCount;
     }

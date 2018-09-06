@@ -10,6 +10,8 @@ import {
 import Router from 'next/router';
 import { Container } from '../components/list';
 
+const createDOMPurify = require('dompurify');
+
 const Styles = {
   signupForm: {
     textAlign: 'center',
@@ -19,11 +21,10 @@ const Styles = {
   },
 };
 
-const PaperController = require('../controllers/paperController');
 const Fetch = require('../controllers/fetch');
 const config = require('../config');
 
-const { sanitize } = PaperController;
+const sanitize = input => createDOMPurify.sanitize(input);
 
 const FormItem = Form.Item;
 

@@ -5,12 +5,16 @@ import {
   Button,
   Card,
   Col,
-  Input,
   Icon,
   Progress,
   Row,
 } from 'antd';
-import { Container, VoteCount, VoteComponent } from '../components/list';
+import {
+  Container,
+  PostTweet,
+  VoteCount,
+  VoteComponent,
+} from '../components/list';
 
 const { Meta } = Card;
 const moment = require('moment');
@@ -27,7 +31,6 @@ const {
 const Fetch = require('../controllers/fetch');
 
 const { postReq, getReq } = Fetch;
-const { TextArea } = Input;
 
 const renderIcon = (selectedAnnotation = { upvotes: [], downvotes: [] }, currentUser = '', isLikeIcon) => {
   const { upvotes, downvotes } = selectedAnnotation;
@@ -51,25 +54,14 @@ const getProgress = (tweet) => {
   return (timePassed / totalSeconds) * 100;
 };
 
-const assignProgress = (trutweets = []) => {
-  return trutweets.map((tweet) => {
-    tweet.progress = getProgress(tweet)
-    return tweet;
-  });
-};
+const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
+  const tweetCopy = Object.assign({}, tweet);
+  tweetCopy.progress = getProgress(tweet);
+  return tweetCopy;
+});
 
 const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
 
-const PostTweet = ({ handleTweet, currentTweet }) => (
-  <Row>
-    <Col span={2}>
-      <Avatar icon="user" style={{ background: 'darkblue' }} />
-    </Col>
-    <Col span={22}>
-      <TextArea rows={3} placeholder="What's on your mind?" onChange={handleTweet} value={currentTweet} />
-    </Col>
-  </Row>
-);
 
 class Index extends Component {
   constructor(props) {
@@ -194,14 +186,14 @@ class Index extends Component {
     } = this.state;
     if (Array.isArray(trutweets)) {
       const newTweets = trutweets.map((tweet) => {
-        let tweetCopy = Object.assign({}, tweet);
+        const tweetCopy = Object.assign({}, tweet);
         if (tweetCopy.progress !== 100) {
           Fetch.getReq(`/api/trutweets?_id=${tweet._id}`, token).then((res) => {
             if (tweetCopy.upvotes !== res.upvotes) {
-              tweetCopy = Object.assign(tweetCopy, { upvotes: res.upvotes });
+              tweetCopy.upvotes = res.upvotes;
             }
             if (tweetCopy.downvotes !== res.downvotes) {
-              tweetCopy = Object.assign(tweetCopy, { downvotes: res.downvotes });
+              tweetCopy.downvotes = res.downvotes;
             }
           });
           tweetCopy.progress = getProgress(tweetCopy);
@@ -459,10 +451,12 @@ class Index extends Component {
       user,
       decodedToken,
       token,
-      trutweets,
       currentTweet,
       fetchedUser,
     } = this.state;
+    let { trutweets } = this.state;
+    trutweets = trutweets.slice(0, 10)
+      .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
     return (
       <div>
         {
@@ -500,8 +494,6 @@ class Index extends Component {
                     </span>
                     { token && trutweets.length > 0 ? (
                       trutweets
-                        .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart))
-                        .slice(0, 10)
                         .map(tweet => (
                           <Row style={{ paddingTop: '10px' }} key={tweet._id}>
                             <Col span={24}>
@@ -521,6 +513,7 @@ class Index extends Component {
                                     tweet.progress !== 100 ? (
                                       <div>
                                         <Progress
+                                          key={tweet._id + tweet.progress}
                                           percent={tweet.progress}
                                           status="active"
                                           showInfo={false}
