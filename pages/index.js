@@ -22,8 +22,15 @@ const Storage = require('../controllers/storage');
 const Token = require('../controllers/token');
 const Time = require('../controllers/time');
 const TweetController = require('../controllers/tweet');
+const VoteController = require('../controllers/vote');
 
 const { getAllTweets } = TweetController;
+
+const {
+  renderIcon,
+  putVote,
+  getPoints,
+} = VoteController;
 
 const {
   add24Hours,
@@ -41,18 +48,6 @@ const {
 const Fetch = require('../controllers/fetch');
 
 const { postReq } = Fetch;
-
-const renderIcon = (selectedAnnotation = { upvotes: [], downvotes: [] }, currentUser = '', isLikeIcon) => {
-  const { upvotes, downvotes } = selectedAnnotation;
-  if (isLikeIcon) {
-    return upvotes.indexOf(currentUser) >= 0 ? 'like' : 'like-o';
-  }
-  return downvotes.indexOf(currentUser) >= 0 ? 'dislike' : 'dislike-o';
-};
-
-const putVote = (body, selectedTweet, token) => {
-  Fetch.putReq(`/api/trutweets?_id=${selectedTweet._id}`, body, token);
-};
 
 
 class Index extends Component {
@@ -194,7 +189,7 @@ class Index extends Component {
             getAllTweets(token).then((res) => {
               const { upvotes, downvotes } = tweetCopy;
               const winners = upvotes.length > downvotes.length ? upvotes : downvotes;
-              const losers = upvotes.length > downvotes.length ? downvotes : downvotes;
+              const losers = upvotes.length > downvotes.length ? downvotes : upvotes;
               this.awardWinners(winners);
               this.penalizeLosers(losers);
               this.setState(prevState => ({
@@ -214,53 +209,28 @@ class Index extends Component {
   }
 
   penalizeLosers(loserArray) {
-    const { token, user } = this.state;
+    const { token, user, fetchedUser } = this.state;
     if (loserArray.indexOf(user) >= 0) {
-      Fetch.getReq(`/api/users?_id=${user}`, token).then((userRes) => {
-        const body = {
-          reputation: userRes.reputation - 10,
-        };
-        Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
-          this.setState(prevState => ({
-            ...prevState,
-            fetchedUser: res,
-          }));
-        });
+      const body = {
+        reputation: fetchedUser.reputation - 10,
+      };
+      Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
+        this.setState(prevState => ({
+          ...prevState,
+          fetchedUser: res,
+        }));
       });
     }
   }
 
-
   awardWinners(winnerArray) {
-    const { token, user } = this.state;
-    let points = 0;
+    const { token, user, fetchedUser } = this.state;
     if (winnerArray.indexOf(user) >= 0) {
       const streak = this.getStreak(user);
-      if (streak > 3) {
-        const adjustedStreak = streak % 3;
-        if (adjustedStreak === 0) {
-          points = 50;
-        }
-        if (adjustedStreak === 1) {
-          points = 10;
-        }
-        if (adjustedStreak === 2) {
-          points = 20;
-        }
-      } else {
-        if (streak === 1) {
-          points = 10;
-        }
-        if (streak === 2) {
-          points = 20;
-        }
-        if (streak === 3) {
-          points = 50;
-        }
-      }
       const body = {
-        reputation: points,
+        reputation: fetchedUser.reputation + getPoints(streak),
       };
+      console.log('body', body);
       Fetch.putReq(`/api/users?_id=${user}`, body, token).then((res) => {
         this.setState(prevState => ({
           ...prevState,

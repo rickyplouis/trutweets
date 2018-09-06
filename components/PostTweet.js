@@ -38,7 +38,7 @@ const PostTweet = ({
           {`Reputation: ${fetchedUser.reputation}`}
         </h3>
         <h3 style={{ display: 'inline' }}>
-          {`Current Streak: ${getStreak(fetchedUser._id)}`}
+          {`Current Streak: ${getStreak(fetchedUser._id) % 3}`}
         </h3>
         <span style={{ float: 'right' }}>
           {currentTweet.length > 280 && <span style={{ color: 'red' }}>TruTweets must be less than 280 chars </span>}
