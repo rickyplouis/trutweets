@@ -513,7 +513,6 @@ class Index extends Component {
                                     tweet.progress !== 100 ? (
                                       <div>
                                         <Progress
-                                          key={tweet._id + tweet.progress}
                                           percent={tweet.progress}
                                           status="active"
                                           showInfo={false}
