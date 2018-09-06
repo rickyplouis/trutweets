@@ -20,9 +20,16 @@ const { Meta } = Card;
 const moment = require('moment');
 const Storage = require('../controllers/storage');
 const Token = require('../controllers/token');
+const Time = require('../controllers/time');
 const TweetController = require('../controllers/tweet');
 
 const { getAllTweets } = TweetController;
+
+const {
+  add24Hours,
+  getProgress,
+  assignProgress,
+} = Time;
 
 const {
   hasStorage,
@@ -47,28 +54,6 @@ const putVote = (body, selectedTweet, token) => {
   Fetch.putReq(`/api/trutweets?_id=${selectedTweet._id}`, body, token);
 };
 
-
-const getProgress = (tweet) => {
-  let { timeStart, timeEnd } = tweet;
-  const now = moment(new Date());
-  timeStart = moment(timeStart);
-  timeEnd = moment(timeEnd);
-  if (now > timeEnd) {
-    return 100;
-  }
-  const duration = moment.duration(timeEnd.diff(timeStart));
-  const totalSeconds = duration.asSeconds();
-  const timePassed = moment.duration(now.diff(timeStart)).asSeconds();
-  return (timePassed / totalSeconds) * 100;
-};
-
-const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
-  const tweetCopy = Object.assign({}, tweet);
-  tweetCopy.progress = getProgress(tweet);
-  return tweetCopy;
-});
-
-const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
 
 class Index extends Component {
   constructor(props) {
