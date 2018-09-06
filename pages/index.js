@@ -316,7 +316,7 @@ class Index extends Component {
 
   handleVote(isUpvote, addingVote, index, selectedTweet) {
     const voteType = isUpvote ? 'upvotes' : 'downvotes';
-    const { token, user } = this.state;
+    const { user } = this.state;
     let body = {};
     if (addingVote) {
       // add up or downvote
@@ -329,7 +329,7 @@ class Index extends Component {
       upvotes: selectedTweet.upvotes,
       downvotes: selectedTweet.downvotes,
     };
-    putVote(body, selectedTweet, token);
+    return body;
   }
 
   vote(evt, isUpvote, selectedTweet) {
@@ -349,12 +349,11 @@ class Index extends Component {
       downvote: !isUpvote,
       dateCreated: new Date(),
     };
-    Fetch.postReq('/api/votes', voteBody, token);
 
     if (isUpvote) {
       if (alreadyUpvoted()) {
         // isupvote and user already upvoted
-        this.handleVote(isUpvote, false, upvoteIndex, selectedTweet);
+        annotationBody = this.handleVote(isUpvote, false, upvoteIndex, selectedTweet);
       } else if (alreadyDownvoted()) {
         // isupvote and user already downvoted
         // remove downvote and add upvote
@@ -364,14 +363,13 @@ class Index extends Component {
           downvotes: selectedTweet.downvotes,
           upvotes: selectedTweet.upvotes,
         };
-        putVote(annotationBody, selectedTweet, token);
       } else {
         // is upvote and user not yet voted
-        this.handleVote(isUpvote, true, upvoteIndex, selectedTweet);
+        annotationBody = this.handleVote(isUpvote, true, upvoteIndex, selectedTweet);
       }
     } else if (alreadyDownvoted()) {
       // is downvote and user alreadyDownvoted
-      this.handleVote(isUpvote, false, downvoteIndex, selectedTweet);
+      annotationBody = this.handleVote(isUpvote, false, downvoteIndex, selectedTweet);
     } else if (alreadyUpvoted()) {
       // isupvote and user already downvoted
       // remove upvote and add downvote
@@ -381,11 +379,14 @@ class Index extends Component {
         upvotes: selectedTweet.upvotes,
         downvotes: selectedTweet.downvotes,
       };
-      putVote(annotationBody, selectedTweet, token);
     } else {
       // is downvote and user note yet voted
-      this.handleVote(isUpvote, true, downvoteIndex, selectedTweet);
+      annotationBody = this.handleVote(isUpvote, true, downvoteIndex, selectedTweet);
     }
+    Promise.all([
+      putVote(annotationBody, selectedTweet, token),
+      Fetch.postReq('/api/votes', voteBody, token),
+    ]);
   }
 
   postTweet() {
