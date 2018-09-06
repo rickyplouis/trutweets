@@ -26,14 +26,14 @@ const getPoints = (streak) => {
       points = 20;
     }
   } else {
-    if (streak === 1) {
-      points = 10;
+    if (streak === 3) {
+      points = 50;
     }
     if (streak === 2) {
       points = 20;
     }
-    if (streak === 3) {
-      points = 50;
+    if (streak === 1) {
+      points = 10;
     }
   }
   return points;
