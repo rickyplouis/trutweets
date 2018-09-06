@@ -349,11 +349,11 @@ class Index extends Component {
       downvote: !isUpvote,
       dateCreated: new Date(),
     };
+    Fetch.postReq('/api/votes', voteBody, token);
 
     if (isUpvote) {
       if (alreadyUpvoted()) {
         // isupvote and user already upvoted
-        Fetch.postReq('/api/votes', voteBody, token);
         this.handleVote(isUpvote, false, upvoteIndex, selectedTweet);
       } else if (alreadyDownvoted()) {
         // isupvote and user already downvoted
@@ -364,16 +364,13 @@ class Index extends Component {
           downvotes: selectedTweet.downvotes,
           upvotes: selectedTweet.upvotes,
         };
-        Fetch.postReq('/api/votes', voteBody, token);
         putVote(annotationBody, selectedTweet, token);
       } else {
         // is upvote and user not yet voted
         this.handleVote(isUpvote, true, upvoteIndex, selectedTweet);
-        Fetch.postReq('/api/votes', voteBody, token);
       }
     } else if (alreadyDownvoted()) {
       // is downvote and user alreadyDownvoted
-      Fetch.postReq('/api/votes', voteBody, token);
       this.handleVote(isUpvote, false, downvoteIndex, selectedTweet);
     } else if (alreadyUpvoted()) {
       // isupvote and user already downvoted
@@ -384,12 +381,10 @@ class Index extends Component {
         upvotes: selectedTweet.upvotes,
         downvotes: selectedTweet.downvotes,
       };
-      Fetch.postReq('/api/votes', voteBody, token);
       putVote(annotationBody, selectedTweet, token);
     } else {
       // is downvote and user note yet voted
       this.handleVote(isUpvote, true, downvoteIndex, selectedTweet);
-      Fetch.postReq('/api/votes', voteBody, token);
     }
   }
 
