@@ -4,12 +4,12 @@ const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do Y
 
 const getProgress = (tweet) => {
   let { timeStart, timeEnd } = tweet;
-  if (timeStart > timeEnd) {
-    return 100;
-  }
   const now = moment(new Date());
   timeStart = moment(timeStart);
   timeEnd = moment(timeEnd);
+  if (now.isAfter(timeEnd)) {
+    return 100;
+  }
   const duration = moment.duration(timeEnd.diff(timeStart));
   const totalSeconds = duration.asSeconds();
   const timePassed = moment.duration(now.diff(timeStart)).asSeconds();
@@ -18,11 +18,7 @@ const getProgress = (tweet) => {
 
 const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
   const tweetCopy = Object.assign({}, tweet);
-  if (tweet.status === 'inProgress') {
-    tweetCopy.progress = getProgress(tweet);
-  } else {
-    tweetCopy.progress = 100;
-  }
+  tweetCopy.progress = getProgress(tweet);
   return tweetCopy;
 });
 
