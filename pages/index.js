@@ -97,6 +97,7 @@ class Index extends Component {
     this.checkTweets = this.checkTweets.bind(this);
     this.awardWinners = this.awardWinners.bind(this);
     this.penalizeLosers = this.penalizeLosers.bind(this);
+    this.getStreak = this.getStreak.bind(this);
   }
 
   componentDidMount() {
@@ -464,30 +465,10 @@ class Index extends Component {
                     <PostTweet
                       currentTweet={currentTweet}
                       handleTweet={this.handleTweet}
+                      postTweet={this.postTweet}
+                      getStreak={this.getStreak}
+                      fetchedUser={fetchedUser}
                     />
-                    <span style={{
-                      textAlign: 'center',
-                      paddingTop: '10px',
-                      paddingBottom: '10px',
-                      display: 'block',
-                    }}
-                    >
-                      <h3 style={{ float: 'left' }}>
-                        {`Reputation: ${fetchedUser.reputation}`}
-                      </h3>
-                      <h3 style={{ display: 'inline' }}>
-                        {`Current Streak: ${this.getStreak(fetchedUser._id)}`}
-                      </h3>
-                      <span style={{ float: 'right' }}>
-                        {currentTweet.length > 280 && <span style={{ color: 'red' }}>TruTweets must be less than 280 chars </span>}
-                        <Button
-                          disabled={currentTweet.length === 0 || currentTweet.length > 280}
-                          onClick={this.postTweet}
-                        >
-                            Submit
-                        </Button>
-                      </span>
-                    </span>
                     { token && trutweets.length > 0 ? (
                       trutweets
                         .map(tweet => (
@@ -534,12 +515,10 @@ class Index extends Component {
                                         }
                                       </div>
                                     ) : (
-                                      <span>
-                                        <TweetStatus
-                                          upvotes={tweet.upvotes}
-                                          downvotes={tweet.downvotes}
-                                        />
-                                      </span>
+                                      <TweetStatus
+                                        upvotes={tweet.upvotes}
+                                        downvotes={tweet.downvotes}
+                                      />
                                     )
                                   }
                                 </span>
