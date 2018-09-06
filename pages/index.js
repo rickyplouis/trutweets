@@ -5,13 +5,13 @@ import {
   Button,
   Card,
   Col,
-  Icon,
   Progress,
   Row,
 } from 'antd';
 import {
   Container,
   PostTweet,
+  TweetStatus,
   VoteCount,
   VoteComponent,
 } from '../components/list';
@@ -69,42 +69,6 @@ const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
 });
 
 const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
-
-const LeftSpan = ({ children }) => (
-  <span style={{ textAlign: '-webkit-left', display: '-webkit-box' }}>
-    {children}
-  </span>
-)
-
-const TweetStatus = ({ upvotes, downvotes }) => (
-  <LeftSpan style={{ textAlign: '-webkit-left' }}>
-    {
-      (upvotes.length > downvotes.length)
-      && (
-        <LeftSpan>
-          <Icon type="check" style={{ color: 'lightgreen', fontSize: '25px' }} />
-          {' Valid'}
-        </LeftSpan>
-      )
-    }
-    {
-      (upvotes.length < downvotes.length) && (
-        <LeftSpan>
-          <Icon type="close-circle" style={{ color: 'salmon', fontSize: '25px' }} />
-          {' Invalid'}
-        </LeftSpan>
-      )
-    }
-    {
-      (upvotes.length === downvotes.length) && (
-        <LeftSpan>
-          <Icon type="question-circle" style={{ color: 'grey', fontSize: '25px' }} />
-          {' Questionable'}
-        </LeftSpan>
-      )
-    }
-  </LeftSpan>
-);
 
 class Index extends Component {
   constructor(props) {
