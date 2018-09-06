@@ -182,12 +182,8 @@ class Index extends Component {
         const tweetCopy = Object.assign({}, tweet);
         if (tweetCopy.progress !== 100) {
           Fetch.getReq(`/api/trutweets?_id=${tweet._id}`, token).then((res) => {
-            if (tweetCopy.upvotes !== res.upvotes) {
-              tweetCopy.upvotes = res.upvotes;
-            }
-            if (tweetCopy.downvotes !== res.downvotes) {
-              tweetCopy.downvotes = res.downvotes;
-            }
+            tweetCopy.upvotes = res.upvotes;
+            tweetCopy.downvotes = res.downvotes;
           });
           tweetCopy.progress = getProgress(tweetCopy);
         } else if (tweetCopy.progress === 100 && tweetCopy.status === 'inProgress') {
