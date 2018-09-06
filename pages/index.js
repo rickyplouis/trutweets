@@ -20,6 +20,9 @@ const { Meta } = Card;
 const moment = require('moment');
 const Storage = require('../controllers/storage');
 const Token = require('../controllers/token');
+const TweetController = require('../controllers/tweet');
+
+const { getAllTweets } = TweetController;
 
 const {
   hasStorage,
@@ -32,13 +35,6 @@ const Fetch = require('../controllers/fetch');
 
 const { postReq } = Fetch;
 
-const getAllTweets = token => new Promise((resolve) => {
-  Fetch.getReq('/api/trutweets', token).then((trutweets) => {
-    resolve(trutweets);
-  });
-});
-
-
 const renderIcon = (selectedAnnotation = { upvotes: [], downvotes: [] }, currentUser = '', isLikeIcon) => {
   const { upvotes, downvotes } = selectedAnnotation;
   if (isLikeIcon) {
@@ -46,6 +42,11 @@ const renderIcon = (selectedAnnotation = { upvotes: [], downvotes: [] }, current
   }
   return downvotes.indexOf(currentUser) >= 0 ? 'dislike' : 'dislike-o';
 };
+
+const putVote = (body, selectedTweet, token) => {
+  Fetch.putReq(`/api/trutweets?_id=${selectedTweet._id}`, body, token);
+};
+
 
 const getProgress = (tweet) => {
   let { timeStart, timeEnd } = tweet;
@@ -69,6 +70,41 @@ const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
 
 const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
 
+const LeftSpan = ({ children }) => (
+  <span style={{ textAlign: '-webkit-left', display: '-webkit-box' }}>
+    {children}
+  </span>
+)
+
+const TweetStatus = ({ upvotes, downvotes }) => (
+  <LeftSpan style={{ textAlign: '-webkit-left' }}>
+    {
+      (upvotes.length > downvotes.length)
+      && (
+        <LeftSpan>
+          <Icon type="check" style={{ color: 'lightgreen', fontSize: '25px' }} />
+          {' Valid'}
+        </LeftSpan>
+      )
+    }
+    {
+      (upvotes.length < downvotes.length) && (
+        <LeftSpan>
+          <Icon type="close-circle" style={{ color: 'salmon', fontSize: '25px' }} />
+          {' Invalid'}
+        </LeftSpan>
+      )
+    }
+    {
+      (upvotes.length === downvotes.length) && (
+        <LeftSpan>
+          <Icon type="question-circle" style={{ color: 'grey', fontSize: '25px' }} />
+          {' Questionable'}
+        </LeftSpan>
+      )
+    }
+  </LeftSpan>
+);
 
 class Index extends Component {
   constructor(props) {
@@ -347,13 +383,8 @@ class Index extends Component {
       upvotes: selectedTweet.upvotes,
       downvotes: selectedTweet.downvotes,
     };
-    this.putVote(body, selectedTweet, token);
+    putVote(body, selectedTweet, token);
   }
-
-  putVote(body, selectedTweet, token) {
-    Fetch.putReq(`/api/trutweets?_id=${selectedTweet._id}`, body, token);
-  }
-
 
   vote(evt, isUpvote, selectedTweet) {
     evt.preventDefault();
@@ -388,7 +419,7 @@ class Index extends Component {
           upvotes: selectedTweet.upvotes,
         };
         Fetch.postReq('/api/votes', voteBody, token);
-        this.putVote(annotationBody, selectedTweet, token);
+        putVote(annotationBody, selectedTweet, token);
       } else {
         // is upvote and user not yet voted
         this.handleVote(isUpvote, true, upvoteIndex, selectedTweet);
@@ -408,7 +439,7 @@ class Index extends Component {
         downvotes: selectedTweet.downvotes,
       };
       Fetch.postReq('/api/votes', voteBody, token);
-      this.putVote(annotationBody, selectedTweet, token);
+      putVote(annotationBody, selectedTweet, token);
     } else {
       // is downvote and user note yet voted
       this.handleVote(isUpvote, true, downvoteIndex, selectedTweet);
@@ -505,7 +536,7 @@ class Index extends Component {
                                   {tweet.text}
                                 </h3>
                                 <Meta
-                                  style={{ paddingLeft: '10px' }}
+                                  style={{ paddingLeft: '10px', textAlign: '-webkit-left' }}
                                   avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
                                   description={`By ${tweet.creatorName}`}
                                 />
@@ -540,31 +571,10 @@ class Index extends Component {
                                       </div>
                                     ) : (
                                       <span>
-                                        {
-                                          (tweet.upvotes.length > tweet.downvotes.length)
-                                          && (
-                                            <span>
-                                              <Icon type="check" style={{ color: 'lightgreen', fontSize: '25px' }} />
-                                              {' Valid'}
-                                            </span>
-                                          )
-                                        }
-                                        {
-                                          (tweet.upvotes.length < tweet.downvotes.length) && (
-                                            <span>
-                                              <Icon type="close-circle" style={{ color: 'salmon', fontSize: '25px' }} />
-                                              {' Invalid'}
-                                            </span>
-                                          )
-                                        }
-                                        {
-                                          (tweet.upvotes.length === tweet.downvotes.length) && (
-                                            <span>
-                                              <Icon type="question-circle" style={{ color: 'grey', fontSize: '25px' }} />
-                                              {' Questionable'}
-                                            </span>
-                                          )
-                                        }
+                                        <TweetStatus
+                                          upvotes={tweet.upvotes}
+                                          downvotes={tweet.downvotes}
+                                        />
                                       </span>
                                     )
                                   }
