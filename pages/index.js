@@ -30,7 +30,14 @@ const {
 
 const Fetch = require('../controllers/fetch');
 
-const { postReq, getReq } = Fetch;
+const { postReq } = Fetch;
+
+const getAllTweets = token => new Promise((resolve) => {
+  Fetch.getReq('/api/trutweets', token).then((trutweets) => {
+    resolve(trutweets);
+  });
+});
+
 
 const renderIcon = (selectedAnnotation = { upvotes: [], downvotes: [] }, currentUser = '', isLikeIcon) => {
   const { upvotes, downvotes } = selectedAnnotation;
@@ -112,7 +119,7 @@ class Index extends Component {
     }
 
     if (trutweets.length === 0) {
-      getReq('/api/trutweets', token).then((tweets) => {
+      getAllTweets(token).then((tweets) => {
         if (Array.isArray(tweets)) {
           tweets = assignProgress(tweets);
           this.setState(prevState => ({
@@ -202,7 +209,7 @@ class Index extends Component {
             status: 'completed',
           };
           Fetch.putReq(`/api/trutweets?_id=${tweet._id}`, body, token).then(() => {
-            Fetch.getReq('/api/trutweets', token).then((res) => {
+            getAllTweets(token).then((res) => {
               let winners = [];
               let losers = [];
               if (tweetCopy.upvotes.length > tweetCopy.downvotes.length) {
@@ -309,7 +316,7 @@ class Index extends Component {
         });
       }
     }
-    Fetch.getReq('/api/trutweets', token).then((res) => {
+    getAllTweets(token).then((res) => {
       if (res.length !== trutweets.length) {
         this.setState(prevState => ({
           ...prevState,
@@ -435,7 +442,7 @@ class Index extends Component {
       progress: 0,
     };
     postReq('/api/trutweets', truTweet, token).then(() => {
-      getReq('/api/trutweets', token).then((trutweets) => {
+      getAllTweets(token).then((trutweets) => {
         trutweets = assignProgress(trutweets);
         this.setState(prevState => ({
           ...prevState,
