@@ -210,15 +210,9 @@ class Index extends Component {
           };
           Fetch.putReq(`/api/trutweets?_id=${tweet._id}`, body, token).then(() => {
             getAllTweets(token).then((res) => {
-              let winners = [];
-              let losers = [];
-              if (tweetCopy.upvotes.length > tweetCopy.downvotes.length) {
-                winners = tweetCopy.upvotes;
-                losers = tweetCopy.downvotes;
-              } else if (tweetCopy.downvotes.length > tweetCopy.upvotes.length) {
-                winners = tweetCopy.downvotes;
-                losers = tweetCopy.upvotes;
-              }
+              const { upvotes, downvotes } = tweetCopy;
+              const winners = upvotes.length > downvotes.length ? upvotes : downvotes;
+              const losers = upvotes.length > downvotes.length ? downvotes : downvotes;
               this.awardWinners(winners);
               this.penalizeLosers(losers);
               this.setState(prevState => ({
