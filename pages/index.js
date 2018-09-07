@@ -128,7 +128,6 @@ class Index extends Component {
   getLastTweet(user) {
     let { trutweets } = this.state;
     if (Array.isArray(trutweets) && trutweets.length > 0) {
-      trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
       for (let x = 0; x < trutweets.length; x += 1) {
         const currentTweet = trutweets[x];
         const { upvotes, downvotes } = currentTweet;
@@ -366,8 +365,7 @@ class Index extends Component {
       fetchedUser,
     } = this.state;
     let { trutweets } = this.state;
-    trutweets = trutweets.slice(0, 10)
-      .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
+    trutweets = trutweets.slice(0, 10);
     return (
       <div>
         {
