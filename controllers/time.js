@@ -17,7 +17,7 @@ const getProgress = (timeStart = new Date(), timeEnd = new Date()) => {
 
 const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
   const tweetCopy = Object.assign({}, tweet);
-  tweetCopy.progress = getProgress(tweet);
+  tweetCopy.progress = getProgress(tweet.timeStart, tweet.timeEnd);
   return tweetCopy;
 });
 

@@ -24,6 +24,6 @@ test('add24Hours_arrayParam_string', () => {
   expect(add24Hours(startDate)).toMatch(endDate);
 });
 
-test('getProgress_noTweet_emptyObject', () => {
+test('getProgress_noParams_emptyObject', () => {
   expect(getProgress()).toEqual(100);
 });
