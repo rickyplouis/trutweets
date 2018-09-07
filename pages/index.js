@@ -29,6 +29,7 @@ const { getAllTweets } = TweetController;
 const {
   getStreak,
   getPoints,
+  handleVote,
   putVote,
   renderIcon,
 } = VoteController;
@@ -126,7 +127,7 @@ class Index extends Component {
   }
 
   getLastTweet(user) {
-    let { trutweets } = this.state;
+    const { trutweets } = this.state;
     if (Array.isArray(trutweets) && trutweets.length > 0) {
       for (let x = 0; x < trutweets.length; x += 1) {
         const currentTweet = trutweets[x];
@@ -250,24 +251,6 @@ class Index extends Component {
     this.handleProp(evt.target.value, 'currentTweet');
   }
 
-  handleVote(isUpvote, addingVote, index, selectedTweet) {
-    const voteType = isUpvote ? 'upvotes' : 'downvotes';
-    const { user } = this.state;
-    let body = {};
-    if (addingVote) {
-      // add up or downvote
-      selectedTweet[voteType].push(user);
-    } else {
-      // removing up or downvote
-      selectedTweet[voteType].splice(index, 1);
-    }
-    body = {
-      upvotes: selectedTweet.upvotes,
-      downvotes: selectedTweet.downvotes,
-    };
-    return body;
-  }
-
   vote(evt, isUpvote, selectedTweet) {
     evt.preventDefault();
     const { user, token } = this.state;
@@ -288,11 +271,8 @@ class Index extends Component {
 
     if (isUpvote) {
       if (alreadyUpvoted()) {
-        // isupvote and user already upvoted
-        annotationBody = this.handleVote(isUpvote, false, upvoteIndex, selectedTweet);
+        annotationBody = handleVote(isUpvote, false, selectedTweet, user);
       } else if (alreadyDownvoted()) {
-        // isupvote and user already downvoted
-        // remove downvote and add upvote
         selectedTweet.downvotes.splice(downvoteIndex, 1);
         selectedTweet.upvotes.push(user);
         annotationBody = {
@@ -300,12 +280,11 @@ class Index extends Component {
           upvotes: selectedTweet.upvotes,
         };
       } else {
-        // is upvote and user not yet voted
-        annotationBody = this.handleVote(isUpvote, true, upvoteIndex, selectedTweet);
+        annotationBody = handleVote(isUpvote, true, selectedTweet, user);
       }
     } else if (alreadyDownvoted()) {
       // is downvote and user alreadyDownvoted
-      annotationBody = this.handleVote(isUpvote, false, downvoteIndex, selectedTweet);
+      annotationBody = handleVote(isUpvote, false, selectedTweet, user);
     } else if (alreadyUpvoted()) {
       // isupvote and user already downvoted
       // remove upvote and add downvote
@@ -317,7 +296,7 @@ class Index extends Component {
       };
     } else {
       // is downvote and user note yet voted
-      annotationBody = this.handleVote(isUpvote, true, downvoteIndex, selectedTweet);
+      annotationBody = handleVote(isUpvote, true, selectedTweet, user);
     }
     Promise.all([
       putVote(annotationBody, selectedTweet, token),

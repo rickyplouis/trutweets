@@ -66,8 +66,28 @@ const getStreak = (user, trutweets) => {
   return streak;
 };
 
+const handleVote = (isUpvote, addingVote, selectedTweet, user) => {
+  const voteType = isUpvote ? 'upvotes' : 'downvotes';
+  const index = selectedTweet[voteType].indexOf(user);
+  let body = {};
+  if (addingVote) {
+    // add up or downvote
+    selectedTweet[voteType].push(user);
+  } else {
+    // removing up or downvote
+    selectedTweet[voteType].splice(index, 1);
+  }
+  body = {
+    upvotes: selectedTweet.upvotes,
+    downvotes: selectedTweet.downvotes,
+  };
+  return body;
+};
+
+
 module.exports = {
   getStreak,
+  handleVote,
   renderIcon,
   putVote,
   getPoints,
