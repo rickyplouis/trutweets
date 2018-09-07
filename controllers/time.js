@@ -2,7 +2,7 @@ const moment = require('moment');
 
 const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
 
-const getProgress = (timeStart = new Date(), timeEnd = new Date()) => {
+const getProgress = (timeStart = new Date().toString(), timeEnd = new Date().toString()) => {
   const now = moment(new Date());
   const begin = moment(timeStart);
   const end = moment(timeEnd);
