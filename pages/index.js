@@ -51,6 +51,26 @@ const Fetch = require('../controllers/fetch');
 
 const { postReq } = Fetch;
 
+const TweetContainer = ({ tweet, children }) => (
+  <Row style={{ paddingTop: '10px' }} key={tweet._id}>
+    <Col span={24}>
+      <Card
+        style={{ width: '100%' }}
+      >
+        <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
+          {tweet.text}
+        </h3>
+        <Meta
+          style={{ paddingLeft: '10px', textAlign: '-webkit-left' }}
+          avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
+          description={`By ${tweet.creatorName}`}
+        />
+        {children}
+      </Card>
+    </Col>
+  </Row>
+);
+
 class Index extends Component {
   constructor(props) {
     super(props);
@@ -283,11 +303,8 @@ class Index extends Component {
         annotationBody = handleVote(isUpvote, true, selectedTweet, user);
       }
     } else if (alreadyDownvoted()) {
-      // is downvote and user alreadyDownvoted
       annotationBody = handleVote(isUpvote, false, selectedTweet, user);
     } else if (alreadyUpvoted()) {
-      // isupvote and user already downvoted
-      // remove upvote and add downvote
       selectedTweet.upvotes.splice(upvoteIndex, 1);
       selectedTweet.downvotes.push(user);
       annotationBody = {
@@ -295,7 +312,6 @@ class Index extends Component {
         downvotes: selectedTweet.downvotes,
       };
     } else {
-      // is downvote and user note yet voted
       annotationBody = handleVote(isUpvote, true, selectedTweet, user);
     }
     Promise.all([
@@ -363,59 +379,47 @@ class Index extends Component {
                     { token && trutweets.length > 0 ? (
                       trutweets
                         .map(tweet => (
-                          <Row style={{ paddingTop: '10px' }} key={tweet._id}>
-                            <Col span={24}>
-                              <Card
-                                style={{ width: '100%' }}
-                              >
-                                <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
-                                  {tweet.text}
-                                </h3>
-                                <Meta
-                                  style={{ paddingLeft: '10px', textAlign: '-webkit-left' }}
-                                  avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
-                                  description={`By ${tweet.creatorName}`}
-                                />
-                                <span>
-                                  {
-                                    tweet.progress !== 100 ? (
-                                      <div>
-                                        <Progress
-                                          percent={tweet.progress}
-                                          status="active"
-                                          showInfo={false}
-                                          style={{ padding: '10px' }}
-                                        />
-                                        {
-                                          fetchedUser.reputation > 0
-                                            ? (
-                                              <VoteComponent
-                                                token={token}
-                                                upvoteType={renderIcon(tweet, user, true)}
-                                                downvoteType={renderIcon(tweet, user, false)}
-                                                onUpvote={evt => this.vote(evt, true, tweet)}
-                                                onDownvote={evt => this.vote(evt, false, tweet)}
-                                              >
-                                                <VoteCount tweet={tweet} />
-                                              </VoteComponent>
-                                            ) : (
-                                              <div>
-                                                {`Your karma is too low you can't vote again until ${add24Hours(this.getLastTweet(user))}`}
-                                              </div>
-                                            )
-                                        }
-                                      </div>
-                                    ) : (
-                                      <TweetStatus
-                                        upvotes={tweet.upvotes}
-                                        downvotes={tweet.downvotes}
-                                      />
-                                    )
-                                  }
-                                </span>
-                              </Card>
-                            </Col>
-                          </Row>
+                          <TweetContainer
+                            tweet={tweet}
+                          >
+                            <span>
+                              {
+                                tweet.progress !== 100 ? (
+                                  <div>
+                                    <Progress
+                                      percent={tweet.progress}
+                                      status="active"
+                                      showInfo={false}
+                                      style={{ padding: '10px' }}
+                                    />
+                                    {
+                                      fetchedUser.reputation > 0
+                                        ? (
+                                          <VoteComponent
+                                            token={token}
+                                            upvoteType={renderIcon(tweet, user, true)}
+                                            downvoteType={renderIcon(tweet, user, false)}
+                                            onUpvote={evt => this.vote(evt, true, tweet)}
+                                            onDownvote={evt => this.vote(evt, false, tweet)}
+                                          >
+                                            <VoteCount tweet={tweet} />
+                                          </VoteComponent>
+                                        ) : (
+                                          <div>
+                                            {`Your karma is too low you can't vote again until ${add24Hours(this.getLastTweet(user))}`}
+                                          </div>
+                                        )
+                                    }
+                                  </div>
+                                ) : (
+                                  <TweetStatus
+                                    upvotes={tweet.upvotes}
+                                    downvotes={tweet.downvotes}
+                                  />
+                                )
+                              }
+                            </span>
+                          </TweetContainer>
                         ))
                     ) : (
                       <div>Loading Tweets</div>

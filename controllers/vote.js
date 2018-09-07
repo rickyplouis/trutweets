@@ -68,12 +68,12 @@ const getStreak = (user, trutweets) => {
 
 const handleVote = (isUpvote, addingVote, selectedTweet, user) => {
   const voteType = isUpvote ? 'upvotes' : 'downvotes';
-  const index = selectedTweet[voteType].indexOf(user);
   let body = {};
   if (addingVote) {
     // add up or downvote
     selectedTweet[voteType].push(user);
   } else {
+    const index = selectedTweet[voteType].indexOf(user);
     // removing up or downvote
     selectedTweet[voteType].splice(index, 1);
   }
