@@ -1,9 +1,7 @@
 import React, { Component } from 'react';
 import Link from 'next/link';
 import {
-  Avatar,
   Button,
-  Card,
   Col,
   Progress,
   Row,
@@ -11,12 +9,12 @@ import {
 import {
   Container,
   PostTweet,
+  TweetContainer,
   TweetStatus,
   VoteCount,
   VoteComponent,
 } from '../components/list';
 
-const { Meta } = Card;
 const moment = require('moment');
 const Storage = require('../controllers/storage');
 const Token = require('../controllers/token');
@@ -50,26 +48,6 @@ const {
 const Fetch = require('../controllers/fetch');
 
 const { postReq } = Fetch;
-
-const TweetContainer = ({ tweet, children }) => (
-  <Row style={{ paddingTop: '10px' }} key={tweet._id}>
-    <Col span={24}>
-      <Card
-        style={{ width: '100%' }}
-      >
-        <h3 style={{ textAlign: '-webkit-left', padding: '10px' }}>
-          {tweet.text}
-        </h3>
-        <Meta
-          style={{ paddingLeft: '10px', textAlign: '-webkit-left' }}
-          avatar={<Avatar icon="user" style={{ background: 'darkblue' }} />}
-          description={`By ${tweet.creatorName}`}
-        />
-        {children}
-      </Card>
-    </Col>
-  </Row>
-);
 
 class Index extends Component {
   constructor(props) {
