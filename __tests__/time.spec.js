@@ -8,6 +8,9 @@ const {
   assignProgress,
 } = Time;
 
+const fiveSeconds_before_now = moment(new Date()).subtract(5, 'seconds').toDate();
+const fiveSeconds_from_now = moment(new Date()).add(5, 'seconds').toDate();
+
 test('add24Hours_noParams_string', () => {
   expect(typeof add24Hours()).toBe('string');
 });
@@ -23,11 +26,28 @@ test('getProgress_noParams_100', () => {
 });
 
 test('getProgress_normalParams_50', () => {
-  const fiveSeconds_before_now = moment(new Date()).subtract(5, 'seconds').toDate();
-  const fiveSeconds_from_now = moment(new Date()).add(5, 'seconds').toDate();
-  expect(Math.round(getProgress(fiveSeconds_before_now, fiveSeconds_from_now))).toEqual(50);
+  expect(getProgress(fiveSeconds_before_now, fiveSeconds_from_now)).toEqual(50);
 });
 
 test('assignProgress_noParams_emptyArray', () => {
   expect(assignProgress()).toEqual([]);
+});
+
+test('assignProgress_normalParams_updatedArray', () => {
+  const tweets = [
+    {
+      timeStart: fiveSeconds_before_now,
+      timeEnd: fiveSeconds_from_now,
+    },
+  ];
+
+  const updatedTweets = [
+    {
+      timeStart: fiveSeconds_before_now,
+      timeEnd: fiveSeconds_from_now,
+      progress: 50,
+    },
+  ];
+
+  expect(assignProgress(tweets)).toContainEqual(updatedTweets[0]);
 });
