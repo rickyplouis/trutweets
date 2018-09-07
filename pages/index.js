@@ -159,8 +159,9 @@ class Index extends Component {
           Fetch.getReq(`/api/trutweets?_id=${tweet._id}`, token).then((res) => {
             tweetCopy.upvotes = res.upvotes;
             tweetCopy.downvotes = res.downvotes;
+            console.log('ran it');
+            tweetCopy.progress = getProgress(tweetCopy);
           });
-          tweetCopy.progress = getProgress(tweetCopy);
         } else if (tweetCopy.progress === 100 && tweetCopy.status === 'inProgress') {
           const body = {
             status: 'completed',

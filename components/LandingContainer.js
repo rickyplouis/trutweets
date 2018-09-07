@@ -10,7 +10,7 @@ const LandingContainer = () => (
     </h2>
     <div style={{ margin: '0 auto', textAlign: '-webkit-center' }}>
       <span style={{ paddingRight: '10px' }}>
-        <Link href="/login" as="/login"><a href="/Login"><Button type="primary">Login</Button></a></Link>
+        <Link href="/login" as="/login"><a href="/login"><Button type="primary">Login</Button></a></Link>
       </span>
       <span>
         <Link href="/signup" as="/signup"><a href="/signup"><Button>Signup</Button></a></Link>
