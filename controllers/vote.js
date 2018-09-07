@@ -41,10 +41,10 @@ const getPoints = (streak) => {
 
 const getStreak = (user, trutweets) => {
   let streak = 0;
-  const copyOfTweets = trutweets.slice()
-    .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
-  for (let x = 0; x < copyOfTweets.length; x += 1) {
-    const { upvotes, downvotes } = copyOfTweets[x];
+  trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
+  console.log('trutweets', trutweets);
+  for (let x = 0; x < trutweets.length; x += 1) {
+    const { upvotes, downvotes } = trutweets[x];
     if (upvotes.length > downvotes.length) {
       if (upvotes.indexOf(user) >= 0) {
         streak += 1;

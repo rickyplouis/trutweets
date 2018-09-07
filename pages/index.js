@@ -351,7 +351,7 @@ class Index extends Component {
                       currentTweet={currentTweet}
                       handleTweet={this.handleTweet}
                       postTweet={this.postTweet}
-                      currentStreak={getStreak(fetchedUser._id, trutweets) % 4}
+                      currentStreak={getStreak(fetchedUser._id, trutweets)}
                       fetchedUser={fetchedUser}
                     />
                     { token && trutweets.length > 0 ? (
