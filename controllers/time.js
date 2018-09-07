@@ -12,7 +12,7 @@ const getProgress = (timeStart = new Date().toString(), timeEnd = new Date().toS
   const duration = moment.duration(end.diff(begin));
   const totalSeconds = duration.asSeconds();
   const timePassed = moment.duration(now.diff(begin)).asSeconds();
-  return Math.round((timePassed / totalSeconds) * 100);
+  return Math.floor((timePassed / totalSeconds) * 100);
 };
 
 const assignProgress = (trutweets = []) => trutweets.map((tweet) => {
