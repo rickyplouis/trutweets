@@ -27,9 +27,10 @@ const VoteController = require('../controllers/vote');
 const { getAllTweets } = TweetController;
 
 const {
-  renderIcon,
-  putVote,
+  getStreak,
   getPoints,
+  putVote,
+  renderIcon,
 } = VoteController;
 
 const {
@@ -48,34 +49,6 @@ const {
 const Fetch = require('../controllers/fetch');
 
 const { postReq } = Fetch;
-
-const getStreak = (user, trutweets) => {
-  let streak = 0;
-  const copyOfTweets = trutweets.slice()
-    .sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
-  for (let x = 0; x < copyOfTweets.length; x += 1) {
-    const { upvotes, downvotes } = copyOfTweets[x];
-    if (upvotes.length > downvotes.length) {
-      if (upvotes.indexOf(user) >= 0) {
-        streak += 1;
-      }
-      if (downvotes.indexOf(user) >= 0) {
-        return streak;
-      }
-    }
-
-    if (downvotes.length > upvotes.length) {
-      if (downvotes.indexOf(user) >= 0) {
-        streak += 1;
-      }
-      if (upvotes.indexOf(user) >= 0) {
-        return streak;
-      }
-    }
-  }
-  return streak;
-};
-
 
 class Index extends Component {
   constructor(props) {
@@ -349,7 +322,7 @@ class Index extends Component {
     }
     Promise.all([
       putVote(annotationBody, selectedTweet, token),
-      Fetch.postReq('/api/votes', voteBody, token),
+      postReq('/api/votes', voteBody, token),
     ]);
   }
 
