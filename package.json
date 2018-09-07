@@ -4,8 +4,9 @@
   "description": "Like twitter, but not really",
   "main": "index.js",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "jest ./__tests__/* && node server.js",
     "build": "next build",
+    "test": "jest ./__tests__/*",
     "start": "NODE_ENV=production node server.js"
   },
   "repository": {

@@ -2,17 +2,16 @@ const moment = require('moment');
 
 const add24Hours = date => moment(date).add(24, 'hours').format('dddd, MMMM Do YYYY, h:mm:ss a');
 
-const getProgress = (tweet) => {
-  let { timeStart, timeEnd } = tweet;
+const getProgress = (timeStart = new Date(), timeEnd = new Date()) => {
   const now = moment(new Date());
-  timeStart = moment(timeStart);
-  timeEnd = moment(timeEnd);
-  if (now.isAfter(timeEnd)) {
+  const begin = moment(timeStart);
+  const end = moment(timeEnd);
+  if (now.isAfter(end)) {
     return 100;
   }
-  const duration = moment.duration(timeEnd.diff(timeStart));
+  const duration = moment.duration(end.diff(begin));
   const totalSeconds = duration.asSeconds();
-  const timePassed = moment.duration(now.diff(timeStart)).asSeconds();
+  const timePassed = moment.duration(now.diff(begin)).asSeconds();
   return (timePassed / totalSeconds) * 100;
 };
 
