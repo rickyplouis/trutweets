@@ -6,7 +6,7 @@
 
 ```javascript
 module.exports = {
-  testDB: //insert dbURL,
+  testDB: //insert mongoose url,
   secret: //insert secret code,
 };
 ```

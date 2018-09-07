@@ -13,30 +13,17 @@ const putVote = (body, selectedTweet, token) => {
 };
 
 const getPoints = (streak) => {
-  let points = 0;
-  if (streak > 3) {
-    const adjustedStreak = streak % 3;
-    if (adjustedStreak === 0) {
-      points = 50;
-    }
-    if (adjustedStreak === 1) {
-      points = 10;
-    }
-    if (adjustedStreak === 2) {
-      points = 20;
-    }
-  } else {
-    if (streak === 3) {
-      points = 50;
-    }
-    if (streak === 2) {
-      points = 20;
-    }
-    if (streak === 1) {
-      points = 10;
-    }
+  const adjustedStreak = streak % 3;
+  if (streak === 3 || adjustedStreak === 0) {
+    return 50;
   }
-  return points;
+  if (streak === 2 || adjustedStreak === 1) {
+    return 20;
+  }
+  if (streak === 1 || adjustedStreak === 2) {
+    return 10;
+  }
+  return 0;
 };
 
 const getStreak = (user, trutweets) => {
@@ -69,11 +56,9 @@ const handleVote = (isUpvote, addingVote, selectedTweet, user) => {
   const voteType = isUpvote ? 'upvotes' : 'downvotes';
   let body = {};
   if (addingVote) {
-    // add up or downvote
     selectedTweet[voteType].push(user);
   } else {
     const index = selectedTweet[voteType].indexOf(user);
-    // removing up or downvote
     selectedTweet[voteType].splice(index, 1);
   }
   body = {
