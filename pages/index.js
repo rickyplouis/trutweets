@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
-import Link from 'next/link';
 import {
-  Button,
   Col,
   Progress,
   Row,
 } from 'antd';
 import {
   Container,
+  LandingContainer,
   PostTweet,
   TweetContainer,
   TweetStatus,
@@ -406,21 +405,7 @@ class Index extends Component {
                   </Col>
                 </Row>
               </Container>
-            ) : (
-              <Container activePath={['1']}>
-                <h2 style={{ textAlign: 'center' }}>
-                  Welcome to TruTweets
-                </h2>
-                <div style={{ margin: '0 auto', textAlign: '-webkit-center' }}>
-                  <span style={{ paddingRight: '10px' }}>
-                    <Link href="/login" as="/login"><a href="/Login"><Button type="primary">Login</Button></a></Link>
-                  </span>
-                  <span>
-                    <Link href="/signup" as="/signup"><a href="/signup"><Button>Signup</Button></a></Link>
-                  </span>
-                </div>
-              </Container>
-            )
+            ) : <LandingContainer />
         }
       </div>
     );
