@@ -14,19 +14,31 @@ const putVote = (body, selectedTweet, token) => {
 
 const getPoints = (streak) => {
   const adjustedStreak = streak % 3;
-  if (streak === 3 || adjustedStreak === 0) {
+  if (streak > 3) {
+    if (adjustedStreak === 0) {
+      return 50;
+    }
+    if (adjustedStreak === 1) {
+      return 20;
+    }
+    if (adjustedStreak === 2) {
+      return 10;
+    }
+  }
+
+  if (streak === 3) {
     return 50;
   }
-  if (streak === 2 || adjustedStreak === 1) {
+  if (streak === 2) {
     return 20;
   }
-  if (streak === 1 || adjustedStreak === 2) {
+  if (streak === 1) {
     return 10;
   }
   return 0;
 };
 
-const getStreak = (user, trutweets) => {
+const getStreak = (user, trutweets = []) => {
   let streak = 0;
   trutweets = trutweets.sort((a, b) => new Date(b.timeStart) - new Date(a.timeStart));
   for (let x = 0; x < trutweets.length; x += 1) {
@@ -52,19 +64,21 @@ const getStreak = (user, trutweets) => {
   return streak;
 };
 
-const handleVote = (isUpvote, addingVote, selectedTweet, user) => {
+const handleVote = (isUpvote, addingVote, selectedTweet = {}, user) => {
   const voteType = isUpvote ? 'upvotes' : 'downvotes';
   let body = {};
-  if (addingVote) {
-    selectedTweet[voteType].push(user);
-  } else {
-    const index = selectedTweet[voteType].indexOf(user);
-    selectedTweet[voteType].splice(index, 1);
+  if (Object.keys(selectedTweet).length > 0) {
+    if (addingVote) {
+      selectedTweet[voteType].push(user);
+    } else {
+      const index = selectedTweet[voteType].indexOf(user);
+      selectedTweet[voteType].splice(index, 1);
+    }
+    body = {
+      upvotes: selectedTweet.upvotes,
+      downvotes: selectedTweet.downvotes,
+    };
   }
-  body = {
-    upvotes: selectedTweet.upvotes,
-    downvotes: selectedTweet.downvotes,
-  };
   return body;
 };
 
