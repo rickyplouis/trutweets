@@ -253,7 +253,7 @@ class Index extends Component {
     const { user, token } = this.state;
     const upvoteIndex = selectedTweet.upvotes.indexOf(user);
     const downvoteIndex = selectedTweet.downvotes.indexOf(user);
-    let annotationBody = {};
+    let tweetBody = {};
 
     const alreadyUpvoted = () => upvoteIndex >= 0;
     const alreadyDownvoted = () => downvoteIndex >= 0;
@@ -268,33 +268,45 @@ class Index extends Component {
 
     if (isUpvote) {
       if (alreadyUpvoted()) {
-        annotationBody = handleVote(isUpvote, false, selectedTweet, user);
+        tweetBody = handleVote(isUpvote, false, selectedTweet, user);
       } else if (alreadyDownvoted()) {
         selectedTweet.downvotes.splice(downvoteIndex, 1);
         selectedTweet.upvotes.push(user);
-        annotationBody = {
+        tweetBody = {
           downvotes: selectedTweet.downvotes,
           upvotes: selectedTweet.upvotes,
         };
       } else {
-        annotationBody = handleVote(isUpvote, true, selectedTweet, user);
+        tweetBody = handleVote(isUpvote, true, selectedTweet, user);
       }
     } else if (alreadyDownvoted()) {
-      annotationBody = handleVote(isUpvote, false, selectedTweet, user);
+      tweetBody = handleVote(isUpvote, false, selectedTweet, user);
     } else if (alreadyUpvoted()) {
       selectedTweet.upvotes.splice(upvoteIndex, 1);
       selectedTweet.downvotes.push(user);
-      annotationBody = {
+      tweetBody = {
         upvotes: selectedTweet.upvotes,
         downvotes: selectedTweet.downvotes,
       };
     } else {
-      annotationBody = handleVote(isUpvote, true, selectedTweet, user);
+      tweetBody = handleVote(isUpvote, true, selectedTweet, user);
     }
+
+    this.updateVoteLocally(selectedTweet, tweetBody);
     Promise.all([
-      putVote(annotationBody, selectedTweet, token),
+      putVote(tweetBody, selectedTweet, token),
       postReq('/api/votes', voteBody, token),
     ]);
+  }
+
+  updateVoteLocally(selectedTweet, tweetBody) {
+    const { trutweets } = this.state;
+    const index = trutweets.findIndex(tweet => tweet._id === selectedTweet._id);
+    trutweets[index] = Object.assign(trutweets[index], tweetBody);
+    this.setState(prevState => ({
+      ...prevState,
+      trutweets,
+    }));
   }
 
   postTweet() {
