@@ -2,16 +2,7 @@
 
 ## How To Start
 
-1. Create config.js in root directory with the following:
-
-```javascript
-module.exports = {
-  testDB: //insert mongoose url,
-  secret: //insert secret code,
-};
-```
-
-2. Install dependencies
+1. Install dependencies
 
 ```
 $ npm i
